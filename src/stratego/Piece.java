@@ -21,7 +21,7 @@ package stratego;
 public enum Piece 
 {
 	EMPTY(false, -1),
-	LAKE(false, -1),
+	LAKE(false, -2),
 	
 	MARSHAL(true, 9),
 	GENERAL(true, 8),
@@ -37,13 +37,19 @@ public enum Piece
 	SPY(true, 0),
 	FLAG(false, 0);
 	
+	public static final int NONE = 0; // neither player
+	public static final int BLUE = 1; // top/client
+	public static final int RED = 2; // bottom/server
+	
 	private boolean moveable;
 	private int level;
+	private int color;
 	
 	private Piece(boolean moveable, int level)
 	{
 		this.moveable = moveable;
 		this.level = level;
+		this.color = NONE;
 	}
 	
 	/**
@@ -89,7 +95,8 @@ public enum Piece
 	 * Indicates which pieces 'wins' when both occupy the same space. 0 means 
 	 * both are removed, 1 means attacker remains, 2 means defender remains. If
 	 * the attacker is immoveable or the defender is a lake, the comparison is 
-	 * invalid and -1 is returned.
+	 * invalid and -1 is returned. Also an invalid comparison if both Pieces
+	 * are the same color.
 	 * @param attacker
 	 * @param p2 second piece
 	 * @return if 0 both removed, if 1 p1 remains, if 2 p2 remains, returns -1
@@ -98,6 +105,9 @@ public enum Piece
 	public static int whoWins(Piece attacker, Piece defender)
 	{
 		if (!attacker.isMoveable() || defender == Piece.LAKE)
+			return -1;
+		
+		if (attacker.color() == defender.color())
 			return -1;
 		
 		if (defender == Piece.BOMB)
@@ -133,6 +143,41 @@ public enum Piece
 	public int level()
 	{
 		return level;
+	}
+	
+	/**
+	 * Gets the Piece color.  
+	 * @return {@link Piece#BLUE}, {@link Piece#RED}, or {@link Piece#NONE}
+	 */
+	public int color()
+	{
+		return color;
+	}
+	
+	/**
+	 * Sets the piece color. No color set if color is not red, blue, or none.
+	 * @param color {@link Piece#BLUE}, {@link Piece#RED}, or {@link Piece#NONE}
+	 * @return true is color is set, false otherwise.
+	 */
+	public boolean setColor(int color)
+	{
+		if (color == Piece.NONE
+				|| color == Piece.BLUE
+				|| color == Piece.RED) 
+		{
+			this.color = color;
+			return true;
+		}
+		return false;	
+	}
+	
+	/**
+	 * Gives a string representation of the Piece (its level)
+	 */
+	@Override
+	public String toString()
+	{
+		return Integer.toString(level);
 	}
 }
 
