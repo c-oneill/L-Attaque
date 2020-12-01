@@ -52,30 +52,37 @@ public enum Piece
 	 * </p> The Scout moves like a rook in chess and any other moveable piece
 	 * (not the bomb or flag) can only move one space at a time vertically or
 	 * horizontally.
-	 * </p> Note, it's not a valid move to remain in the same place.
-	 * @param currX current X coordinate of piece
-	 * @param currY current Y coordinate of piece
-	 * @param X next X coordinate of piece
-	 * @param Y next Y coordinate of piece
+	 * </p> Note, it's not a valid move to remain in the same place and the move
+	 * cant't end up in the lakes 
+	 * (row, col) : {(4,2)(4,3)(5,2)(5,3)(4,6)(4,7)(5,6)(5,7)
+	 * 
+	 * @param currRow current Row coordinate of piece
+	 * @param currCol current Col coordinate of piece
+	 * @param row next Row of piece
+	 * @param col next Col of piece
 	 * @param piece piece being moved
 	 * @return true if a valid move, false otherwise
 	 */
-	public static boolean isMoveValid(int currX, int currY, int X, int Y, Piece piece)
+	public static boolean isMoveValid(int currRow, int currCol, int row, int col, Piece piece)
 	{
 		// can the piece move
 		if(!piece.moveable)
 			return false;
 		
 		// does the move remain on the board
-		if (X >= 10 || Y >= 10)
+		if (col >= StrategoModel.COLUMNS || row >= StrategoModel.ROWS)
+			return false;
+		
+		// does the move land in the lakes
+		if ((row == 4 || row == 5) && (col == 2 || col == 3 || col == 6 || col == 7))
 			return false;
 		
 		// moveable piece is not a Scout - should move one square at a time
-		if (piece != Piece.SCOUT && (Math.abs(currX - X) != 1 || Math.abs(currY - Y) != 1))
+		if (piece != Piece.SCOUT && (Math.abs(currRow - row) != 1 || Math.abs(currCol - col) != 1))
 			return false;
 		
-		// no diagonal moves -> currX == X XOR currY == Y
-		return currX == X ^ currY == Y;
+		// no diagonal moves -> currRow == row XOR currCol == col
+		return currRow == row ^ currCol == col;
 	}
 	
 	/**
