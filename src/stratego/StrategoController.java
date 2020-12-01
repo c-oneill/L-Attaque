@@ -32,53 +32,83 @@ public class StrategoController
 	 * only moved if the move follows in-game logic. If an opponent piece
 	 * occupies the destination, the source piece "attacks" the destination
 	 * piece.
-	 * @param currRow source row location
-	 * @param currCol source column location
-	 * @param row destination row location
-	 * @param col destination column location
+	 * @param srcRow source row location
+	 * @param srcCol source column location
+	 * @param dstRow destination row location
+	 * @param dstCol destination column location
 	 * @return true is move logic is valid, false otherwise
 	 */
-	public boolean movePiece(int currRow, int currCol, int row, int col)
+	public boolean movePiece(int srcRow, int srcCol, int dstRow, int dstCol)
 	{
-		Piece srcPiece = model.getPosition(currRow, currCol);
-		Piece dstPiece = model.getPosition(row, col);
+		Piece srcPiece = model.getPosition(srcRow, srcCol);
+		Piece dstPiece = model.getPosition(dstRow, dstCol);
 		int winner = Piece.whoWins(srcPiece, dstPiece);
 		
-		if (!Piece.isMoveValid(currRow, currCol, row, col, srcPiece))
+		if (!Piece.isMoveValid(srcRow, srcCol, dstRow, dstCol, srcPiece) || winner == -1)
 			return false;
 		
 		// does move skip over any other pieces/lakes (only applicable to scout)
-		if (srcPiece == Piece.SCOUT)
+		if (srcPiece == Piece.SCOUT && doesMoveJump(srcRow, srcCol, dstRow, dstCol))
+			return false;
+		
+		// move is valid (srcPiece is not empty or a lake)
+		model.removePosition(srcRow, srcCol);
+		model.setPosition(dstRow, dstCol, srcPiece);
+		
+		if (winner == 0) // both removed
 		{
-			// moves horizontally
-			if (currRow == row)
+			model.removePiece(srcPiece);
+			model.removePiece(dstPiece);
+			model.removePosition(dstRow, dstCol);
+		}
+		else if (winner == 1) // attacker remains, defender removed
+		{
+			model.removePiece(dstPiece);
+		}
+		else if (winner == 2) // defender remains, attacker removed
+		{
+			model.removePiece(srcPiece);
+			model.setPosition(dstRow, dstCol, dstPiece);
+		}
+		return true;
+	}
+	
+	/**
+	 * Determines if a given moves jumps other pieces or lakes. Assumes
+	 * movement is entirely vertical or entirely horizontal.
+	 * @param srcRow source row location
+	 * @param srcCol source column location
+	 * @param dstRow destination row location
+	 * @param dstCol destination column location
+	 * @return true if move includes a jump, false otherwise
+	 */
+	private boolean doesMoveJump(int srcRow, int srcCol, int dstRow, int dstCol)
+	{
+		// moves horizontally
+		if (srcRow == dstRow)
+		{
+			int diff = Math.abs(srcCol - dstCol);
+			int start = Integer.min(srcCol, dstCol);
+						
+			for (int c = start + 1; c < start + diff; c++)
 			{
-				int diff = Math.abs(currCol - col);
-				int start = Integer.min(currCol, col);
-				
-				for (int c = start + 1; c < start + diff; c++)
-				{
-					if (model.getPosition(row, c) != Piece.EMPTY)
-						return false;	
-				}
-			}
-			// moves vertically
-			else // currCol == col
-			{
-				int diff = Math.abs(currRow - row);
-				int start = Integer.min(currRow, row);
-				
-				for (int r = start + 1; r < start + diff; r++)
-				{
-					if (model.getPosition(r, col) != Piece.EMPTY)
-						return false;	
-				}
+				if (model.getPosition(dstRow, c) != Piece.EMPTY)
+					return true;	
 			}
 		}
-		
-		
-		
-		
+		// moves vertically
+		else // srcCol == col
+		{
+			int diff = Math.abs(srcRow - dstRow);
+			int start = Integer.min(srcRow, dstRow);
+						
+			for (int r = start + 1; r < start + diff; r++)
+			{
+				if (model.getPosition(r, dstCol) != Piece.EMPTY)
+					return true;	
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -92,22 +122,49 @@ public class StrategoController
 		return model.getPosition(row, col);
 	}
 	
-	public void addToSetup(int row, int col, Piece piece)
+	/**
+	 * Adds Piece to initial setup for that color at the indicated position.
+	 * @param row row placement in setup
+	 * @param col col placement in setup
+	 * @param piece piece to place
+	 * @return true if the piece is placed (valid position, valid piece), false 
+	 * if setup already has the max. number of that piece type 
+	 */
+	public boolean addToSetup(int row, int col, Piece piece)
 	{
-		
+		return false;
 	}
 	
-	public void setBoard()
+	/**
+	 * Takes an initial setup grid and fills in the board. No action is taken if
+	 * any part of the board is not empty 
+	 * @param initialSetup
+	 * @param color
+	 * @return true if the setup is successful, false if that side is already
+	 * setup or has any pieces that are not {@link Piece#EMPTY} 
+	 */
+	public boolean setBoard(Piece[][] initialSetup, int color)
 	{
-		
+		// calls setBoard in Model which notifies observers
+		return false;
 	}
 	
+	/**
+	 * If fills an empty slots in the initial board setup if the user did not
+	 * indicate a piece for every space.
+	 */
 	private void fillRemaining()
 	{
 		
 	}
 	
-	public int getWinner()
+	/**
+	 * Gets the current game winner. In the case of no winner yet, 
+	 * {@value Piece#NONE} is returned.
+	 * @return {@value Piece#NONE} if no winner yet, {@value Piece#BLUE} if
+	 * blue/client wins, {@value Piece#RED} if red/server wins.
+	 */
+	public int winner()
 	{
 		return 0;
 	}
