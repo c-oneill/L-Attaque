@@ -158,18 +158,6 @@ public class StrategoView extends Application implements Observer{
         menuBar.getMenus().add(fileMenu);
     }
     
-    
-    /**
-     * <ul><b><i>getNewGameOptions</i></b></ul>
-     * <ul><ul><p><code>private void getNewGameOptions () </code></p></ul>
-     *
-     *
-     * @author Kristopher Rangel
-     */
-    private void getNewGameOptions() {
-
-    }
-    
     /**
      * <ul><b><i>initBoard</i></b></ul>
      * <ul><ul><p><code> private void initBoard () </code></p></ul>
@@ -239,10 +227,50 @@ public class StrategoView extends Application implements Observer{
 
     }
     
+    /**
+     * <ul><b><i>getNewGameOptions</i></b></ul>
+     * <ul><ul><p><code>private void getNewGameOptions () </code></p></ul>
+     *
+     * This method launches a dialog box that allows the user
+     * to enter Network Setup options.
+     *
+     * @author Kristopher Rangel
+     */
+    private void getNewGameOptions() {
+        StrategoNewGameMenu newGameMenu = new StrategoNewGameMenu();
+        newGameMenu.setX(stage.getX());
+        newGameMenu.setY(stage.getY());
+        newGameMenu.showAndWait();
+        
+        if(newGameMenu.userHitOK()) { // user hit okay to start new game
+            
+            // Getting user options
+            String server = newGameMenu.getServer();
+            int port = newGameMenu.getPort();
+            isServer = newGameMenu.getCreateModeSelection();
+
+            startNewGame(server, port);
+        }
+ 
+    }
     
+    /**
+     * <ul><b><i>startNewGame</i></b></ul>
+     * <ul><ul><p><code>private void startNewGame (String server, int port) </code></p></ul>
+     *
+     * This function starts a new game with the options selected by the user.
+     *
+     * @param server - the hostname of the server
+     * @param port - the port number
+     *
+     * @author Kristopher Rangel
+     */
+    private void startNewGame(String server, int port) {
     
-    
-    
+        //TODO finish start new game procedures
+        
+        
+    }
     
     
     /**
