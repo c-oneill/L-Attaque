@@ -9,6 +9,7 @@ import java.util.Observable;
  * </p> Notes:
  * 		-top/blue is the client
  * 		-top/red is the server
+ * 
  * @author Caroline O'Neill
  *
  */
@@ -56,6 +57,7 @@ public class StrategoModel extends Observable
 		bluePieces.put(Piece.SERGEANT, 4);
 		bluePieces.put(Piece.MINER, 5);
 		bluePieces.put(Piece.SCOUT, 8);
+		bluePieces.put(Piece.BOMB, 6);
 		bluePieces.put(Piece.SPY, 1);
 		bluePieces.put(Piece.FLAG, 1);
 		
@@ -69,6 +71,7 @@ public class StrategoModel extends Observable
 		redPieces.put(Piece.SERGEANT, 4);
 		redPieces.put(Piece.MINER, 5);
 		redPieces.put(Piece.SCOUT, 8);
+		redPieces.put(Piece.BOMB, 6);
 		redPieces.put(Piece.SPY, 1);
 		redPieces.put(Piece.FLAG, 1);
 	}

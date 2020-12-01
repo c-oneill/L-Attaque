@@ -108,7 +108,7 @@ public enum Piece
 			return -1;
 		
 		if (attacker.color() == defender.color())
-			return 0;
+			return -1;
 		
 		if (defender == Piece.BOMB)
 			if (attacker == Piece.MINER)
