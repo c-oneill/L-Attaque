@@ -21,11 +21,18 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-
+/**
+ * This class serves as the UI for the Stratego program.
+ * 
+ * <p>This class is an {@link Observer} of the {@link StrategoModel} class.
+ * </p>
+ * 
+ * @author Kristopher Rangel
+ *
+ */
 
 public class StrategoView extends Application implements Observer{
 
-    private final int SQUARE_SIZE = 70;
     private final int VGAP_PADDING = 8;
     private final int HGAP_PADDING = 8;
     private final int INSETS_PADDING = 4;
