@@ -38,7 +38,7 @@ public class StrategoView extends Application implements Observer{
     private final int INSETS_PADDING = 4;
     private final Color BACKGROUND_COLOR = Color.WHITE;
     private final int BOARD_SIZE = 10;
-    private final int GRID_BORDERS = 1;
+    private final int GRID_BORDERS = 2;
     private final int PIECE_BORDER = 5;
     private final int WINDOW_HEIGHT = 1000;
     private final int WINDOW_WIDTH = 1000;
