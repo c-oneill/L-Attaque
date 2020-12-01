@@ -13,7 +13,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.input.*;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 
 /**
@@ -45,6 +44,9 @@ public class PieceView extends VBox {
     private Color borderColor;
     private int borderWidth;
     
+    private boolean dragEnabled;
+    private boolean dropEnabled;
+    
     /**
      * Constructor.
      * 
@@ -60,10 +62,11 @@ public class PieceView extends VBox {
         this.pieceIndex = pieceIndex;
         this.borderColor = borderColor;
         this.borderWidth = borderWidth;
-        
+        dragEnabled = true;
+        dropEnabled = true;
         initBackground(pieceIndex);
         
-        Rectangle r = new Rectangle(SIZE, SIZE, color);
+        Rectangle r = new Rectangle(SIZE, SIZE, TRANSPARENT);
         this.getChildren().add(r);
         setSquareBorder(borderColor, borderWidth);
         
@@ -71,12 +74,14 @@ public class PieceView extends VBox {
         this.setPrefWidth(SIZE);
         
         this.setOnDragDetected( e-> {
-            System.out.print("Drag started on ");
-            testPrintPiece();
-            Dragboard db = startDragAndDrop(TransferMode.ANY);
-            ClipboardContent content = new ClipboardContent();
-            content.putString(toString());
-            db.setContent(content);
+            if(this.dragEnabled) {
+                System.out.print("Drag started on ");
+                testPrintPiece();
+                Dragboard db = startDragAndDrop(TransferMode.ANY);
+                ClipboardContent content = new ClipboardContent();
+                content.putString(toString());
+                db.setContent(content);
+            }
             e.consume();
         });
         
@@ -94,21 +99,25 @@ public class PieceView extends VBox {
         
         // Drag over entered event ( mouse is dragging over this)
         this.setOnDragEntered(e -> {
-            System.out.print("Drag entered ");
-            testPrintPiece();
-            // setting color to "highlight" square mouse is over
-            //TODO check for own pieces and not highlight
-            //TODO check for invalid move square and not highlight
-            Color c = Color.MAGENTA;
-            setBorderColor(c);
+            if(dropEnabled) {
+                System.out.print("Drag entered ");
+                testPrintPiece();
+                // setting color to "highlight" square mouse is over
+                //TODO check for own pieces and not highlight
+                //TODO check for invalid move square and not highlight
+                Color c = Color.MAGENTA;
+                setBorderColor(c);
+            }
         });
-        
+
         // Drag over exited event ( mouse is no longer dragging over this
         this.setOnDragExited(e -> {
-            System.out.print("Drag exited ");
-            testPrintPiece();
-            // reseting to original color (mouse drag no longer over)
-            setBorderColor(borderColor);
+            if(dropEnabled) {
+                System.out.print("Drag exited ");
+                testPrintPiece();
+                // reseting to original color (mouse drag no longer over)
+                setBorderColor(borderColor);
+            }
         });
         
         // Drag over dropped event
@@ -116,14 +125,32 @@ public class PieceView extends VBox {
             Dragboard db = e.getDragboard();
             boolean success = false;
             
-            if(db.hasString()) {
+            if(db.hasString() && this.dropEnabled) {
+
+                String rawInfo = db.getString();
+                String[] info = rawInfo.split(" ");
+                //Color color = Color.RED;
+                //String blue = info[1].substring(6,8);
+                //if(blue.equals("ff")) { color = Color.BLUE; }
                 System.out.print("Drag ended on ");
                 testPrintPiece();
-                System.out.printf("String: %s\n", db.getString());
+                System.out.printf("String: %s %s %s\n", info[0], info[1], info[2]);
+                
+                
+                //this.borderColor = Color.BLUE;
+                //setBorderColor(Color.BLUE);
+                setBorderWidth(Integer.parseInt(info[2]));
+                initBackground(Integer.parseInt(info[0]));
+ 
+                System.out.println(color.toString());
+
+                setBorderColor(Color.web(info[1]));
+
                 success = true;
             }
             e.setDropCompleted(success);
             e.consume();
+            
         });
     }
     
@@ -138,8 +165,11 @@ public class PieceView extends VBox {
         
         if(pieceIndex == -2) { // lake
             this.color = LAKE;
+            dragEnabled = false;
+            dropEnabled = false;
         }else if(pieceIndex == -1) { // empty land
             this.color = LAND;
+            dragEnabled = false;
         }else {
             this.color = TRANSPARENT;   
         }
@@ -178,8 +208,14 @@ public class PieceView extends VBox {
     }
     
     private void setBorderWidth(int width) {
-       Rectangle r = (Rectangle) this.getChildren().get(0);
-       r.setStrokeWidth(width);
+        this.borderWidth = width;
+        Rectangle r = (Rectangle) this.getChildren().get(0);
+        r.setStrokeWidth(width);
+    }
+    
+    private void setSquareColor(Color color) {
+        Rectangle r = (Rectangle) this.getChildren().get(0);
+        
     }
     
     public String toString() {
@@ -189,4 +225,11 @@ public class PieceView extends VBox {
         return str;
     }
     
+    public void setDragEnabled(boolean enabled) {
+        this.dragEnabled = enabled;
+    }
+    
+    public void setDropEnabled(boolean enabled) {
+        this.dropEnabled = enabled;
+    }
 }

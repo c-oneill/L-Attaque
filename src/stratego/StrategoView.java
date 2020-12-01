@@ -37,9 +37,10 @@ public class StrategoView extends Application implements Observer{
     private final int HGAP_PADDING = 8;
     private final int INSETS_PADDING = 4;
     private final Color BACKGROUND_COLOR = Color.WHITE;
+    private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
-    private final int GRID_BORDERS = 2;
-    private final int PIECE_BORDER = 5;
+    private final int GRID_BORDERS = 3;
+    private final int PIECE_BORDER = 3;
     private final int WINDOW_HEIGHT = 1000;
     private final int WINDOW_WIDTH = 1000;
     private final int CHATBOX_WIDTH = 300;
@@ -58,7 +59,6 @@ public class StrategoView extends Application implements Observer{
     
     private boolean inputEnabled;
     private boolean isServer;
-    private boolean isHuman;
     
     /**
      * <ul><b><i>start</i></b></ul>
@@ -185,7 +185,7 @@ public class StrategoView extends Application implements Observer{
                     pieceIndex = -1;
                 }
                     
-                PieceView square = new PieceView(pieceIndex, Color.BLACK, GRID_BORDERS);
+                PieceView square = new PieceView(pieceIndex, BOARD_GRID_COLOR, GRID_BORDERS);
                 board.add(square , col, row);
             }
         }
@@ -220,6 +220,7 @@ public class StrategoView extends Application implements Observer{
         for(int row = 0; row < 2; row++) {
             for(int col = 0; col < 6; col++) {
                 PieceView pv = new PieceView(pieceIndex, playerColor, PIECE_BORDER);
+                pv.setDropEnabled(false); // can't drop pieces onto the bottom piece tray
                 piecesBox.add(pv , col, row);
                 pieceIndex++;
             }
