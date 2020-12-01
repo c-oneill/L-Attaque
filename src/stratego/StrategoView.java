@@ -21,6 +21,11 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.image.Image;
 
 public class StrategoView extends Application implements Observer{
 
@@ -102,10 +107,9 @@ public class StrategoView extends Application implements Observer{
         
         initMenuBar();
         initBoard();
-        createGrid(board, ROWS, COLUMNS, Color.WHEAT, Color.RED);
-        initPieces();
-        createGrid(piecesBox, 2, 6, Color.ALICEBLUE, Color.BLACK);
         initChatBox();
+        initPieces();
+
         
         window = new BorderPane();        
         window.setTop(menuBar);
@@ -123,6 +127,7 @@ public class StrategoView extends Application implements Observer{
         chatDisplay.setEditable(false);
         chatDisplay.setPrefHeight(WINDOW_HEIGHT);
         chatDisplay.setAlignment(Pos.TOP_LEFT);
+        chatDisplay.setDisable(true);
         chatEntry = new TextField("Enter Chat here.");
         chatBox.getChildren().addAll(chatDisplay, chatEntry);
         VBox.setVgrow(chatEntry, Priority.ALWAYS);
@@ -170,15 +175,15 @@ public class StrategoView extends Application implements Observer{
      */
     private void initBoard() {
         board = new GridPane();
-        //board.styleProperty().set("-fx-background-image: url('https://abload.de/img/stbohjsmc.png');"
-        //        + "-fx-background-repeat: no-repeat;");
+
         board.setPadding(new Insets(INSETS_PADDING, INSETS_PADDING, INSETS_PADDING, INSETS_PADDING));
         board.setAlignment(Pos.CENTER);
+        createGrid(board, ROWS, COLUMNS, Color.WHEAT, Color.RED);
     }
     
     /**
-     * <ul><b><i>createCircles</i></b></ul>
-     * <ul><ul><p><code> private void createCircles () </code></p></ul>
+     * <ul><b><i>createGrid</i></b></ul>
+     * <ul><ul><p><code> private void createGrid () </code></p></ul>
      *
      * Creates white circle objects and adds them to the board.
      *
@@ -188,9 +193,17 @@ public class StrategoView extends Application implements Observer{
         grid.getChildren().clear();
         for(int row = 0; row < rows; row++) {
             for(int col = 0; col < columns; col++) {
-                Rectangle r = new Rectangle(SQUARE_SIZE, SQUARE_SIZE, bgColor);   
+                Rectangle r = new Rectangle(SQUARE_SIZE, SQUARE_SIZE, Color.TRANSPARENT); 
                 r.strokeProperty().set(borderColor);
-                grid.add(r, col, row);
+                
+                VBox v = new VBox();
+                BackgroundFill bgfill = new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY);
+                Background bg = new Background(bgfill);
+                v.setBackground(bg);
+                v.setPrefHeight(SQUARE_SIZE);
+                v.setPrefWidth(SQUARE_SIZE);
+                v.getChildren().add(r);
+                grid.add(v, col, row);
             }
         }
     }
@@ -202,6 +215,9 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel
      */
     private void initPieces() {
+        String[] rank_images = {"ranks_flag.png","ranks_bomb.png", "ranks_1-spy.png", "ranks_2-scout.png",
+                                "ranks_3-Miner.png", "ranks_4-SGT.png", "ranks_5-LT.png", "ranks_6-CPT.png",
+                                "ranks_7-MAJ.png", "ranks_8-COL.png", "ranks_9-GEN.png", "ranks_10-Marshall.png"};
         piecesBox = new GridPane();
         BackgroundFill bgfill = new BackgroundFill(BACKGROUND_COLOR, CornerRadii.EMPTY, Insets.EMPTY);
         Background bg = new Background(bgfill);
@@ -211,6 +227,17 @@ public class StrategoView extends Application implements Observer{
         piecesBox.setVgap(VGAP_PADDING);
         piecesBox.setPadding(new Insets(INSETS_PADDING, INSETS_PADDING, INSETS_PADDING, INSETS_PADDING));
         piecesBox.setAlignment(Pos.BASELINE_LEFT);
+        createGrid(piecesBox, 2, 6, Color.TRANSPARENT, Color.GRAY);
+        
+        for(int i = 0; i < rank_images.length; i++) {
+            BackgroundImage bgImage = new BackgroundImage(new Image(rank_images[i]), 
+                    BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+            VBox v = (VBox) piecesBox.getChildren().get(i);
+            Background bgi = new Background(bgImage);
+            v.setBackground(bgi);
+            
+        }
+        
     }
     /**
      * <ul><b><i>update</i></b></ul>
