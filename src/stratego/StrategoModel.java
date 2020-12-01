@@ -140,6 +140,14 @@ public class StrategoModel extends Observable
 		return grid[row][col];
 	}
 	
+	/**
+	 * Builds the start formation of pieces for a player. [0][0] is the top
+	 * left corner of the formation. Note that position [0][0] at the 'back' for
+	 * blue/client anf the 'front' for red/server. Notifies observers of board
+	 * setup with a {@link BoardSetupMessage}.
+	 * @param setupGrid a 4 x 10 grid indicating the player setup
+	 * @param player player color
+	 */
 	public void setBoard(Piece[][] setupGrid, int player)
 	{
 		int startRow = 0;
@@ -155,6 +163,24 @@ public class StrategoModel extends Observable
 		}
 		
 		// TODO notify observers with BoardSetupMessage
+	}
+	
+	/**
+	 * Gets the HashMap of red pieces still on the board.
+	 * @return red pieces
+	 */
+	public HashMap<Piece, Integer> getRedPieces()
+	{
+		return redPieces;
+	}
+	
+	/**
+	 * Gets the HashMap of blue pieces still on the board.
+	 * @return blue pieces
+	 */
+	public HashMap<Piece, Integer> getBluePieces()
+	{
+		return bluePieces;
 	}
 	
 	/**
