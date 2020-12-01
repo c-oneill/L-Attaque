@@ -19,13 +19,9 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
-import javafx.scene.image.Image;
+
+
 
 public class StrategoView extends Application implements Observer{
 
@@ -34,15 +30,14 @@ public class StrategoView extends Application implements Observer{
     private final int HGAP_PADDING = 8;
     private final int INSETS_PADDING = 4;
     private final Color BACKGROUND_COLOR = Color.WHITE;
-    private final int COLUMNS = 10;
-    private final int ROWS = 10;
-    private final int PIECES = 40;
+    private final int BOARD_SIZE = 10;
+    private final int GRID_BORDERS = 1;
+    private final int PIECE_BORDER = 5;
     private final int WINDOW_HEIGHT = 1000;
     private final int WINDOW_WIDTH = 1000;
     private final int CHATBOX_WIDTH = 300;
     
     private Stage stage;
-  //  private VBox window;
     private BorderPane window;
     private GridPane board;
     private GridPane piecesBox;
@@ -51,6 +46,8 @@ public class StrategoView extends Application implements Observer{
     private TextField chatDisplay;
     private TextField chatEntry;
     //private StrategoController controller;
+    
+    private Color playerColor;
     
     private boolean inputEnabled;
     private boolean isServer;
@@ -69,6 +66,8 @@ public class StrategoView extends Application implements Observer{
      */
     @Override
     public void start(Stage stage) {
+        
+        
         Scene scene = new Scene(window);
         
         // Showing stage
@@ -104,6 +103,8 @@ public class StrategoView extends Application implements Observer{
      *
      */
     public void init() {
+        
+        playerColor = Color.BLUE;
         
         initMenuBar();
         initBoard();
@@ -167,9 +168,8 @@ public class StrategoView extends Application implements Observer{
      * <ul><ul><p><code> private void initBoard () </code></p></ul>
      *
      * A run-once function that sets the initial state of the Stratego board.
-     * 
-     * <p>This function sets the board background, alignment, and padding. Then it
-     * invokes the {@link #createCircles()} method.
+     *
+     * <p> Sets the initial board grid by invoking {@link createGrid}
      *
      * @author Kristopher Rangel
      */
@@ -178,34 +178,23 @@ public class StrategoView extends Application implements Observer{
 
         board.setPadding(new Insets(INSETS_PADDING, INSETS_PADDING, INSETS_PADDING, INSETS_PADDING));
         board.setAlignment(Pos.CENTER);
-        createGrid(board, ROWS, COLUMNS, Color.WHEAT, Color.RED);
-    }
-    
-    /**
-     * <ul><b><i>createGrid</i></b></ul>
-     * <ul><ul><p><code> private void createGrid () </code></p></ul>
-     *
-     * Creates white circle objects and adds them to the board.
-     *
-     * @author Kristopher Rangel
-     */
-    private void createGrid(GridPane grid, int rows, int columns, Color bgColor, Color borderColor) {
-        grid.getChildren().clear();
-        for(int row = 0; row < rows; row++) {
-            for(int col = 0; col < columns; col++) {
-                Rectangle r = new Rectangle(SQUARE_SIZE, SQUARE_SIZE, Color.TRANSPARENT); 
-                r.strokeProperty().set(borderColor);
-                
-                VBox v = new VBox();
-                BackgroundFill bgfill = new BackgroundFill(bgColor, CornerRadii.EMPTY, Insets.EMPTY);
-                Background bg = new Background(bgfill);
-                v.setBackground(bg);
-                v.setPrefHeight(SQUARE_SIZE);
-                v.setPrefWidth(SQUARE_SIZE);
-                v.getChildren().add(r);
-                grid.add(v, col, row);
+        
+        // creating piece layout at bottom
+        board.getChildren().clear();
+        int pieceIndex = -1;
+        for(int row = 0; row < BOARD_SIZE; row++) {
+            for(int col = 0; col < BOARD_SIZE; col++) {
+                if ((row == 4 || row == 5) && (col == 2 || col == 3 || col == 6 || col == 7)) {
+                    pieceIndex = -2;
+                }else {
+                    pieceIndex = -1;
+                }
+                    
+                PieceView square = new PieceView(pieceIndex, Color.BLACK, GRID_BORDERS);
+                board.add(square , col, row);
             }
         }
+ 
     }
     
     /**
@@ -221,24 +210,34 @@ public class StrategoView extends Application implements Observer{
         piecesBox = new GridPane();
         BackgroundFill bgfill = new BackgroundFill(BACKGROUND_COLOR, CornerRadii.EMPTY, Insets.EMPTY);
         Background bg = new Background(bgfill);
+        
         piecesBox.styleProperty().set("-fx-border-color: blue;");
+        
         piecesBox.setBackground(bg);
         piecesBox.setHgap(HGAP_PADDING);
         piecesBox.setVgap(VGAP_PADDING);
         piecesBox.setPadding(new Insets(INSETS_PADDING, INSETS_PADDING, INSETS_PADDING, INSETS_PADDING));
         piecesBox.setAlignment(Pos.BASELINE_LEFT);
-        createGrid(piecesBox, 2, 6, Color.TRANSPARENT, Color.GRAY);
-        
-        for(int i = 0; i < rank_images.length; i++) {
-            BackgroundImage bgImage = new BackgroundImage(new Image(rank_images[i]), 
-                    BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
-            VBox v = (VBox) piecesBox.getChildren().get(i);
-            Background bgi = new Background(bgImage);
-            v.setBackground(bgi);
-            
+
+        // creating piece layout at bottom
+        piecesBox.getChildren().clear();
+        int pieceIndex = 0;
+        for(int row = 0; row < 2; row++) {
+            for(int col = 0; col < 6; col++) {
+                PieceView pv = new PieceView(pieceIndex, playerColor, PIECE_BORDER);
+                piecesBox.add(pv , col, row);
+                pieceIndex++;
+            }
         }
-        
+
     }
+    
+    
+    
+    
+    
+    
+    
     /**
      * <ul><b><i>update</i></b></ul>
      * <ul><ul><p><code> public void update (Observable o, Object arg) </code></p></ul>
