@@ -92,9 +92,15 @@ public class StrategoModel extends Observable
 		Piece piece = grid[row][col];
 		
 		if (piece.type != PieceType.LAKE)
-			grid[row][col] = new Piece(PieceType.EMPTY);
+		{
+			Piece emptyPiece = new Piece(PieceType.EMPTY); 
+			grid[row][col] = emptyPiece;
 		
-		// TODO notify observers with SinglePositionMessage
+			// notify observers with SinglePositionMessage
+			SinglePositionMessage message = new SinglePositionMessage(row, col, emptyPiece);
+			setChanged();
+			notifyObservers(message);
+		}
 		
 		return piece;
 	}
@@ -131,7 +137,10 @@ public class StrategoModel extends Observable
 	{
 		grid[row][col] = piece;
 		
-		// TODO notify observers with SinglePositionMessage
+		// notify observers with SinglePositionMessage
+		SinglePositionMessage message = new SinglePositionMessage(row, col, piece);
+		setChanged();
+		notifyObservers(message);
 	}
 	
 	/**
@@ -169,7 +178,10 @@ public class StrategoModel extends Observable
 			}
 		}
 		
-		// TODO notify observers with BoardSetupMessage
+		// notify observers with BoardSetupMessage
+		BoardSetupMessage message = new BoardSetupMessage(color, setupGrid);
+		setChanged();
+		notifyObservers(message);
 	}
 	
 	/**

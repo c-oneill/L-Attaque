@@ -2,6 +2,8 @@ package stratego;
 
 import java.io.Serializable;
 
+import stratego.Piece.PieceType;
+
 /**
  * BoardSetupMessage communicates a one player's board setup change after the
  * initialization phase.
@@ -14,9 +16,9 @@ public class BoardSetupMessage implements Serializable
 	private static final long serialVersionUID = 1L;
 	
 	private int color;
-	private Piece[][] initialSetup;
+	private PieceType[][] initialSetup;
 	
-	public BoardSetupMessage(int color, Piece[][] initialSetup)
+	public BoardSetupMessage(int color, PieceType[][] initialSetup)
 	{
 		this.color = color;
 		this.initialSetup = initialSetup;
@@ -35,7 +37,7 @@ public class BoardSetupMessage implements Serializable
 	 * Gets the initialSetup - a 4(row) x 10(col) 2D array.
 	 * @return initialSetup
 	 */
-	public Piece[][] getInitialSetup()
+	public PieceType[][] getInitialSetup()
 	{
 		return initialSetup;
 	}
