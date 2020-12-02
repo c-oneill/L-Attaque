@@ -36,6 +36,8 @@ import javafx.beans.InvalidationListener;
 
 public class StrategoView extends Application implements Observer{
 
+    protected static final boolean ENABLE_CONSOLE_DEBUG = false;
+    
     private final int VGAP_PADDING = 8;
     private final int HGAP_PADDING = 8;
     private final int INSETS_PADDING = 4;
@@ -96,8 +98,10 @@ public class StrategoView extends Application implements Observer{
             this.stage = stage;
 
         }catch(Exception e) {
-            System.out.println("Error with javafx while initializing the UI.");
-            e.printStackTrace();
+            if(ENABLE_CONSOLE_DEBUG) {
+                System.out.println("Error with javafx while initializing the UI.");
+                e.printStackTrace();
+            }
         }
         
     }
@@ -123,7 +127,7 @@ public class StrategoView extends Application implements Observer{
         initChatBox();
         initPieces();
         initTimer();
-        startTimer();
+
         
         window = new BorderPane();        
         window.setTop(menuBar);
@@ -247,6 +251,13 @@ public class StrategoView extends Application implements Observer{
 
     }
     
+    /**
+     * <ul><b><i>initTimer</i></b></ul>
+     * <ul><ul><p><code>private void initTimer () </code></p></ul>
+     *
+     * Initializes the timer UI element.
+     *
+     */
     private void initTimer() {
         int row = 0;
         int span = 2;
@@ -257,9 +268,20 @@ public class StrategoView extends Application implements Observer{
         clockFace.prefWidth(200);
         clockFace.prefHeight(200);
         piecesBox.add(clockFace, TIMER_COLUMN, row, span, span);
-        //clockFace.setVisible(false); 
+        clockFace.setVisible(false); 
     }
     
+    /**
+     * <ul><b><i>startTimer</i></b></ul>
+     * <ul><ul><p><code> void startTimer () </code></p></ul>
+     *
+     * Starts the timer.
+     * 
+     * <p>Intitializes a {@link Timer} objects and adds a listener to
+     * update the timer in the UI appropriately.
+     *
+     * @author Kristopher Rangel
+     */
     private void startTimer() {
         timer = new Timer(DEFAULT_TIME);
         // adding listener for change in timer to update the timer display
@@ -282,7 +304,7 @@ public class StrategoView extends Application implements Observer{
      * <ul><ul><p><code>private void getNewGameOptions () </code></p></ul>
      *
      * This method launches a dialog box that allows the user
-     * to enter Network Setup options.
+     * to enter Network Setup options. Invokes {@link #startNewGame} method.
      *
      * @author Kristopher Rangel
      */
@@ -310,16 +332,23 @@ public class StrategoView extends Application implements Observer{
      *
      * This function starts a new game with the options selected by the user.
      *
+     *
+     *
      * @param server - the hostname of the server
      * @param port - the port number
      *
      * @author Kristopher Rangel
      */
     private void startNewGame(String server, int port) {
+
+        
+        
+        //TODO setup network connection here
         
         clockFace.setVisible(true);
-        //TODO finish start new game procedures
+        startTimer();
         
+        //TODO finish start new game procedures
         
     }
     
