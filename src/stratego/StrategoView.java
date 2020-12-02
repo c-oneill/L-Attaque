@@ -2,25 +2,16 @@ package stratego;
 
 import java.util.Observable;
 import java.util.Observer;
-
+import java.util.List;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Label;
+import javafx.scene.Node;
+import javafx.scene.control.*;
 import javafx.scene.text.Font;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.beans.InvalidationListener;
@@ -44,6 +35,8 @@ public class StrategoView extends Application implements Observer{
     private final Color BACKGROUND_COLOR = Color.WHITE;
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
+    private final int SETUP_INDEX_START = 60;
+    private final int SETUP_INDEX_END = 99;
     private final int GRID_BORDERS = 3;
     private final int WINDOW_HEIGHT = 1000;
     private final int WINDOW_WIDTH = 1000;
@@ -61,7 +54,7 @@ public class StrategoView extends Application implements Observer{
     private Label clockFace;
     private StrategoController controller;
     private Timer timer;
-    
+    private Button setupDone;
     private Color playerColor;
     
     private boolean inputEnabled;
@@ -201,6 +194,13 @@ public class StrategoView extends Application implements Observer{
                 }
                     
                 PieceView square = new PieceView(pieceIndex, BOARD_GRID_COLOR, GRID_BORDERS);
+                
+                // initializing square for no input
+                square.setDragEnabled(false);
+                square.setDropEnabled(false);
+                square.setIsOnBoard(true);
+                
+                // adding square to board
                 square.setPosition(row, col);
                 board.add(square , col, row);
             }
@@ -267,8 +267,17 @@ public class StrategoView extends Application implements Observer{
         clockFace.setAlignment(Pos.CENTER_RIGHT);
         clockFace.prefWidth(200);
         clockFace.prefHeight(200);
+        clockFace.setVisible(false);
         piecesBox.add(clockFace, TIMER_COLUMN, row, span, span);
-        clockFace.setVisible(false); 
+        
+        setupDone = new Button("Setup Done");
+        setupDone.setVisible(false);
+        setupDone.setOnAction(e -> { 
+            timer.stopTimer(); 
+            setupBoardEnable(false);
+            //TODO notify connection of setup completion
+            });
+        piecesBox.add(setupDone, TIMER_COLUMN - 2, row, span, span);
     }
     
     /**
@@ -283,6 +292,8 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel
      */
     private void startTimer() {
+        clockFace.setVisible(true);
+        setupDone.setVisible(true);
         timer = new Timer(DEFAULT_TIME);
         // adding listener for change in timer to update the timer display
         timer.getTime().addListener(new InvalidationListener() {
@@ -345,11 +356,21 @@ public class StrategoView extends Application implements Observer{
         
         //TODO setup network connection here
         
-        clockFace.setVisible(true);
         startTimer();
+        setupBoardEnable(true);
         
         //TODO finish start new game procedures
         
+    }
+    
+    private void setupBoardEnable(boolean enableSetup) {
+
+        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
+        setupArea.forEach( e -> {
+            PieceView pv = (PieceView) e;
+            pv.setDragEnabled(enableSetup);
+            pv.setDropEnabled(enableSetup);
+        } );
     }
     
     
