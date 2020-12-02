@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Observable;
 
+import stratego.Piece.PieceType;
+
 /**
  * This class serves as the underlying model for the Stratego program.
  * </p> Notes:
@@ -19,8 +21,8 @@ public class StrategoModel extends Observable
 	public static final int ROWS = 10;
 	
 	private Piece[][] grid; // grid[row][col]
-	private HashMap<Piece, Integer> bluePieces; // piece : count 
-	private HashMap<Piece, Integer> redPieces; // piece :  count
+	private HashMap<PieceType, Integer> bluePieces; // piece : count 
+	private HashMap<PieceType, Integer> redPieces; // piece :  count
 	
 	public static void main(String[] args) 
 	{
@@ -41,39 +43,39 @@ public class StrategoModel extends Observable
 			for (int c = 0; c < COLUMNS; c++)
 			{
 				if ((r == 4 || r == 5) && (c == 2 || c == 3 || c == 6 || c == 7))
-					grid[r][c] = Piece.LAKE;
+					grid[r][c] = new Piece(PieceType.LAKE);
 				else
-					grid[r][c] = Piece.EMPTY;
+					grid[r][c] = new Piece(PieceType.EMPTY);
 			}
 		}
 		
-		bluePieces = new HashMap<Piece, Integer>();
-		bluePieces.put(Piece.MARSHAL, 1);
-		bluePieces.put(Piece.GENERAL, 1);
-		bluePieces.put(Piece.COLONEL, 2);
-		bluePieces.put(Piece.MAJOR, 3);
-		bluePieces.put(Piece.CAPTAIN, 4);
-		bluePieces.put(Piece.LIEUTENANT, 4);
-		bluePieces.put(Piece.SERGEANT, 4);
-		bluePieces.put(Piece.MINER, 5);
-		bluePieces.put(Piece.SCOUT, 8);
-		bluePieces.put(Piece.BOMB, 6);
-		bluePieces.put(Piece.SPY, 1);
-		bluePieces.put(Piece.FLAG, 1);
+		bluePieces = new HashMap<PieceType, Integer>();
+		bluePieces.put(PieceType.MARSHAL, 1);
+		bluePieces.put(PieceType.GENERAL, 1);
+		bluePieces.put(PieceType.COLONEL, 2);
+		bluePieces.put(PieceType.MAJOR, 3);
+		bluePieces.put(PieceType.CAPTAIN, 4);
+		bluePieces.put(PieceType.LIEUTENANT, 4);
+		bluePieces.put(PieceType.SERGEANT, 4);
+		bluePieces.put(PieceType.MINER, 5);
+		bluePieces.put(PieceType.SCOUT, 8);
+		bluePieces.put(PieceType.BOMB, 6);
+		bluePieces.put(PieceType.SPY, 1);
+		bluePieces.put(PieceType.FLAG, 1);
 		
-		redPieces = new HashMap<Piece, Integer>();
-		redPieces.put(Piece.MARSHAL, 1);
-		redPieces.put(Piece.GENERAL, 1);
-		redPieces.put(Piece.COLONEL, 2);
-		redPieces.put(Piece.MAJOR, 3);
-		redPieces.put(Piece.CAPTAIN, 4);
-		redPieces.put(Piece.LIEUTENANT, 4);
-		redPieces.put(Piece.SERGEANT, 4);
-		redPieces.put(Piece.MINER, 5);
-		redPieces.put(Piece.SCOUT, 8);
-		redPieces.put(Piece.BOMB, 6);
-		redPieces.put(Piece.SPY, 1);
-		redPieces.put(Piece.FLAG, 1);
+		redPieces = new HashMap<PieceType, Integer>();
+		redPieces.put(PieceType.MARSHAL, 1);
+		redPieces.put(PieceType.GENERAL, 1);
+		redPieces.put(PieceType.COLONEL, 2);
+		redPieces.put(PieceType.MAJOR, 3);
+		redPieces.put(PieceType.CAPTAIN, 4);
+		redPieces.put(PieceType.LIEUTENANT, 4);
+		redPieces.put(PieceType.SERGEANT, 4);
+		redPieces.put(PieceType.MINER, 5);
+		redPieces.put(PieceType.SCOUT, 8);
+		redPieces.put(PieceType.BOMB, 6);
+		redPieces.put(PieceType.SPY, 1);
+		redPieces.put(PieceType.FLAG, 1);
 	}
 	
 	/**
@@ -89,8 +91,8 @@ public class StrategoModel extends Observable
 	{
 		Piece piece = grid[row][col];
 		
-		if (piece != Piece.LAKE)
-			grid[row][col] = Piece.EMPTY;
+		if (piece.type != PieceType.LAKE)
+			grid[row][col] = new Piece(PieceType.EMPTY);
 		
 		// TODO notify observers with SinglePositionMessage
 		
@@ -107,10 +109,10 @@ public class StrategoModel extends Observable
 	public boolean removePiece(Piece piece)
 	{
 		if (piece.color() == Piece.BLUE)
-			bluePieces.put(piece, bluePieces.get(piece) - 1);
+			bluePieces.put(piece.type, bluePieces.get(piece.type) - 1);
 		
 		else if (piece.color() == Piece.RED)
-			redPieces.put(piece, redPieces.get(piece) - 1);
+			redPieces.put(piece.type, redPieces.get(piece.type) - 1);
 		
 		else
 			return false;
@@ -172,7 +174,7 @@ public class StrategoModel extends Observable
 	 * Gets the HashMap of red pieces still on the board.
 	 * @return red pieces
 	 */
-	public HashMap<Piece, Integer> getRedPieces()
+	public HashMap<PieceType, Integer> getRedPieces()
 	{
 		return redPieces;
 	}
@@ -181,7 +183,7 @@ public class StrategoModel extends Observable
 	 * Gets the HashMap of blue pieces still on the board.
 	 * @return blue pieces
 	 */
-	public HashMap<Piece, Integer> getBluePieces()
+	public HashMap<PieceType, Integer> getBluePieces()
 	{
 		return bluePieces;
 	}

@@ -1,5 +1,8 @@
 package stratego;
 
+import java.util.HashMap;
+
+import stratego.Piece.PieceType;
 
 /**
  * This class serves as the Controller in the Stratego Program, allowing the 
@@ -26,7 +29,44 @@ public class StrategoController
 	
 	private Piece[][] blueInitialSetup;
 	private Piece[][] redInitialSetup;
+	private HashMap<PieceType, Integer> blueAvailible; // piece : count 
+	private HashMap<PieceType, Integer> redAvailible; // piece :  count
 	
+	public StrategoController()
+	{
+		model = new StrategoModel();
+		
+		blueInitialSetup = new Piece[4][10];
+		redInitialSetup = new Piece[4][10];
+		
+		blueAvailible = new HashMap<PieceType, Integer>();
+		blueAvailible.put(PieceType.MARSHAL, 1);
+		blueAvailible.put(PieceType.GENERAL, 1);
+		blueAvailible.put(PieceType.COLONEL, 2);
+		blueAvailible.put(PieceType.MAJOR, 3);
+		blueAvailible.put(PieceType.CAPTAIN, 4);
+		blueAvailible.put(PieceType.LIEUTENANT, 4);
+		blueAvailible.put(PieceType.SERGEANT, 4);
+		blueAvailible.put(PieceType.MINER, 5);
+		blueAvailible.put(PieceType.SCOUT, 8);
+		blueAvailible.put(PieceType.BOMB, 6);
+		blueAvailible.put(PieceType.SPY, 1);
+		blueAvailible.put(PieceType.FLAG, 1);
+		
+		redAvailible = new HashMap<PieceType, Integer>();
+		redAvailible.put(PieceType.MARSHAL, 1);
+		redAvailible.put(PieceType.GENERAL, 1);
+		redAvailible.put(PieceType.COLONEL, 2);
+		redAvailible.put(PieceType.MAJOR, 3);
+		redAvailible.put(PieceType.CAPTAIN, 4);
+		redAvailible.put(PieceType.LIEUTENANT, 4);
+		redAvailible.put(PieceType.SERGEANT, 4);
+		redAvailible.put(PieceType.MINER, 5);
+		redAvailible.put(PieceType.SCOUT, 8);
+		redAvailible.put(PieceType.BOMB, 6);
+		redAvailible.put(PieceType.SPY, 1);
+		redAvailible.put(PieceType.FLAG, 1);
+	}
 	/**
 	 * Moves a piece from current position to a new specified position. Piece is
 	 * only moved if the move follows in-game logic. If an opponent piece
@@ -44,11 +84,11 @@ public class StrategoController
 		Piece dstPiece = model.getPosition(dstRow, dstCol);
 		int winner = Piece.whoWins(srcPiece, dstPiece);
 		
-		if (!Piece.isMoveValid(srcRow, srcCol, dstRow, dstCol, srcPiece) || winner == -1)
+		if (!Piece.isMoveValid(srcRow, srcCol, dstRow, dstCol, srcPiece.type) || winner == -1)
 			return false;
 		
 		// does move skip over any other pieces/lakes (only applicable to scout)
-		if (srcPiece == Piece.SCOUT && doesMoveJump(srcRow, srcCol, dstRow, dstCol))
+		if (srcPiece.type == PieceType.SCOUT && doesMoveJump(srcRow, srcCol, dstRow, dstCol))
 			return false;
 		
 		// move is valid (srcPiece is not empty or a lake)
@@ -92,7 +132,7 @@ public class StrategoController
 						
 			for (int c = start + 1; c < start + diff; c++)
 			{
-				if (model.getPosition(dstRow, c) != Piece.EMPTY)
+				if (model.getPosition(dstRow, c).type != PieceType.EMPTY)
 					return true;	
 			}
 		}
@@ -104,7 +144,7 @@ public class StrategoController
 						
 			for (int r = start + 1; r < start + diff; r++)
 			{
-				if (model.getPosition(r, dstCol) != Piece.EMPTY)
+				if (model.getPosition(r, dstCol).type != PieceType.EMPTY)
 					return true;	
 			}
 		}
