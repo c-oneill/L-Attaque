@@ -168,5 +168,19 @@ public class StrategoController
 	{
 		return 0;
 	}
-			
+	
+    /**
+     * <ul><b><i>setModelObserver</i></b></ul>
+     * <ul><ul><p><code>public void setModelObserver (StrategoView view) </code></p></ul>
+     *
+     * Adds a {@link StrategoView} as an observer of the {@link StrategoModel}.
+     *
+     * @param view - the <code>StrategoView</code> to observer the <code>StrategoModel</code>
+     * 
+     * @author Kristopher Rangel
+     */
+    public void setModelObserver(StrategoView view) {
+        model.addObserver(view);
+    }
+	
 }
