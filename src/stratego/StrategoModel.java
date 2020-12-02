@@ -151,19 +151,21 @@ public class StrategoModel extends Observable
 	 * blue/client anf the 'front' for red/server. Notifies observers of board
 	 * setup with a {@link BoardSetupMessage}.
 	 * @param setupGrid a 4 x 10 grid indicating the player setup
-	 * @param player player color
+	 * @param color player color
 	 */
-	public void setBoard(Piece[][] setupGrid, int player)
+	public void setBoard(PieceType[][] setupGrid, int color)
 	{
 		int startRow = 0;
-		if (player == Piece.RED)
+		if (color == Piece.RED)
 			startRow = 6;
 		
 		for (int row = startRow; row < startRow + 4; row++)
 		{
 			for (int col = 0; col < 10; col++)
 			{
-				grid[row][col] = setupGrid[row][col];
+				Piece newPiece = new Piece(setupGrid[row][col]);
+				newPiece.setColor(color);
+				grid[row][col] = newPiece;
 			}
 		}
 		
