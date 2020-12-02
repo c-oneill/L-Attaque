@@ -4,6 +4,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -12,6 +13,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
+import javafx.scene.text.Font;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -21,7 +23,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
+import javafx.beans.InvalidationListener;
 /**
  * This class serves as the UI for the Stratego program.
  * 
@@ -44,7 +46,8 @@ public class StrategoView extends Application implements Observer{
     private final int WINDOW_HEIGHT = 1000;
     private final int WINDOW_WIDTH = 1000;
     private final int CHATBOX_WIDTH = 300;
-    
+    private final int TIMER_COLUMN = 9;
+    private int DEFAULT_TIME = 120000; // 2 mins
     private Stage stage;
     private BorderPane window;
     private GridPane board;
@@ -53,7 +56,9 @@ public class StrategoView extends Application implements Observer{
     private MenuBar menuBar; 
     private TextField chatDisplay;
     private TextField chatEntry;
+    private Label clockFace;
     private StrategoController controller;
+    private Timer timer;
     
     private Color playerColor;
     
@@ -117,7 +122,8 @@ public class StrategoView extends Application implements Observer{
         initBoard();
         initChatBox();
         initPieces();
-
+        initTimer();
+        startTimer();
         
         window = new BorderPane();        
         window.setTop(menuBar);
@@ -125,6 +131,11 @@ public class StrategoView extends Application implements Observer{
         window.setRight(chatBox);
         window.setBottom(piecesBox);
         
+    }
+    
+    public void stop() {
+        if(timer != null)
+            timer.stopTimer();
     }
     
     private void initChatBox() {
@@ -225,14 +236,45 @@ public class StrategoView extends Application implements Observer{
                 piecesBox.add(pv , col, row);
                 pieceIndex++;
             }
+            // Spacers for the timer
+            for(int col = 6; col < TIMER_COLUMN; col++) {
+                VBox empty = new VBox(70);
+                empty.setPrefWidth(70);
+                piecesBox.add(empty, col, row);
+            }
         }
+        
 
     }
     
-    private void initClock() {
+    private void initTimer() {
         int row = 0;
-        int col = 8;
-        Label clockFace = new Label();
+        int span = 2;
+        Font font = new Font(48);
+        clockFace = new Label("02:00");
+        clockFace.setFont(font);
+        clockFace.setAlignment(Pos.CENTER_RIGHT);
+        clockFace.prefWidth(200);
+        clockFace.prefHeight(200);
+        piecesBox.add(clockFace, TIMER_COLUMN, row, span, span);
+        //clockFace.setVisible(false); 
+    }
+    
+    private void startTimer() {
+        timer = new Timer(DEFAULT_TIME);
+        // adding listener for change in timer to update the timer display
+        timer.getTime().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(javafx.beans.Observable arg0) {
+                // updating timer display
+                Platform.runLater(
+                        () -> {
+                clockFace.setText(timer.getTime().get());
+                        } 
+                );
+            }
+        });
+        timer.startTimer();
     }
     
     /**
@@ -274,7 +316,8 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel
      */
     private void startNewGame(String server, int port) {
-    
+        
+        clockFace.setVisible(true);
         //TODO finish start new game procedures
         
         
