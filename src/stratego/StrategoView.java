@@ -36,13 +36,13 @@ public class StrategoView extends Application implements Observer{
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
     private final int SETUP_INDEX_START = 60;
-    private final int SETUP_INDEX_END = 99;
+    private final int SETUP_INDEX_END = 100;
     private final int GRID_BORDERS = 3;
     private final int WINDOW_HEIGHT = 1000;
     private final int WINDOW_WIDTH = 1000;
     private final int CHATBOX_WIDTH = 300;
     private final int TIMER_COLUMN = 9;
-    private int DEFAULT_TIME = 120000; // 2 mins
+    private int DEFAULT_TIME = 5000; //120000; // 2 mins
     private Stage stage;
     private BorderPane window;
     private GridPane board;
@@ -75,6 +75,7 @@ public class StrategoView extends Application implements Observer{
     public void start(Stage stage) {
         
         controller = new StrategoController();
+        //controller.setModelObserver(this);
         Scene scene = new Scene(window);
         
         // Showing stage
@@ -302,7 +303,11 @@ public class StrategoView extends Application implements Observer{
                 // updating timer display
                 Platform.runLater(
                         () -> {
-                clockFace.setText(timer.getTime().get());
+                            String time = timer.getTime().get();
+                            clockFace.setText(time);
+                            if(time.equals("00:00")) {
+                                endSetup();
+                            }
                         } 
                 );
             }
@@ -361,6 +366,12 @@ public class StrategoView extends Application implements Observer{
         
         //TODO finish start new game procedures
         
+    }
+    
+    private void endSetup() {
+        setupBoardEnable(false);
+        
+        //TODO after setup stuff
     }
     
     private void setupBoardEnable(boolean enableSetup) {

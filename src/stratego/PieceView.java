@@ -14,6 +14,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.input.*;
 import javafx.event.EventHandler;
+import stratego.Piece.PieceType;
 
 /**
  * This class represents a single square in the UI for the {@link StrategoView}.
@@ -42,7 +43,7 @@ public class PieceView extends VBox {
     private int pieceIndex;
     private Color borderColor;
     private int borderWidth;
-    private Piece piece;
+    private PieceType piece;
     private boolean dragEnabled;
     private boolean dropEnabled;
     private boolean isOnBoard;
@@ -375,46 +376,46 @@ public class PieceView extends VBox {
     private void setPiece() {
         switch(pieceIndex) {
         case -2:
-            piece = Piece.LAKE;
+            piece = PieceType.LAKE;
             break;
         case -1:
-            piece = Piece.EMPTY;
+            piece = PieceType.EMPTY;
             break;
         case 0:
-            piece = Piece.FLAG;
+            piece = PieceType.FLAG;
             break;
         case 1:
-            piece = Piece.BOMB;
+            piece = PieceType.BOMB;
             break;
         case 2:
-            piece = Piece.SPY;
+            piece = PieceType.SPY;
             break;
         case 3:
-            piece = Piece.SCOUT;
+            piece = PieceType.SCOUT;
             break;
         case 4:
-            piece = Piece.MINER;
+            piece = PieceType.MINER;
             break;
         case 5:
-            piece = Piece.SERGEANT;
+            piece = PieceType.SERGEANT;
             break;
         case 6:
-            piece = Piece.LIEUTENANT;
+            piece = PieceType.LIEUTENANT;
             break;
         case 7:
-            piece = Piece.CAPTAIN;
+            piece = PieceType.CAPTAIN;
             break;
         case 8:
-            piece = Piece.MAJOR;
+            piece = PieceType.MAJOR;
             break;
         case 9:
-            piece = Piece.COLONEL;
+            piece = PieceType.COLONEL;
             break;
         case 10:
-            piece = Piece.GENERAL;
+            piece = PieceType.GENERAL;
             break;
         case 11:
-            piece = Piece.MARSHAL;
+            piece = PieceType.MARSHAL;
             break;
         }
     }
@@ -430,7 +431,7 @@ public class PieceView extends VBox {
      * 
      * @author Kristopher Rangel
      */
-    public Piece getPiece() {
+    public PieceType getPiece() {
         return this.piece;
     }
     
