@@ -11,6 +11,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -40,7 +41,6 @@ public class StrategoView extends Application implements Observer{
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
     private final int GRID_BORDERS = 3;
-    private final int PIECE_BORDER = 3;
     private final int WINDOW_HEIGHT = 1000;
     private final int WINDOW_WIDTH = 1000;
     private final int CHATBOX_WIDTH = 300;
@@ -53,7 +53,7 @@ public class StrategoView extends Application implements Observer{
     private MenuBar menuBar; 
     private TextField chatDisplay;
     private TextField chatEntry;
-    //private StrategoController controller;
+    private StrategoController controller;
     
     private Color playerColor;
     
@@ -74,7 +74,7 @@ public class StrategoView extends Application implements Observer{
     @Override
     public void start(Stage stage) {
         
-        
+        controller = new StrategoController();
         Scene scene = new Scene(window);
         
         // Showing stage
@@ -186,6 +186,7 @@ public class StrategoView extends Application implements Observer{
                 }
                     
                 PieceView square = new PieceView(pieceIndex, BOARD_GRID_COLOR, GRID_BORDERS);
+                square.setPosition(row, col);
                 board.add(square , col, row);
             }
         }
@@ -219,13 +220,19 @@ public class StrategoView extends Application implements Observer{
         int pieceIndex = 0;
         for(int row = 0; row < 2; row++) {
             for(int col = 0; col < 6; col++) {
-                PieceView pv = new PieceView(pieceIndex, playerColor, PIECE_BORDER);
+                PieceView pv = new PieceView(pieceIndex, playerColor);
                 pv.setDropEnabled(false); // can't drop pieces onto the bottom piece tray
                 piecesBox.add(pv , col, row);
                 pieceIndex++;
             }
         }
 
+    }
+    
+    private void initClock() {
+        int row = 0;
+        int col = 8;
+        Label clockFace = new Label();
     }
     
     /**

@@ -27,8 +27,7 @@ import javafx.event.EventHandler;
  */
 
 public class PieceView extends VBox {
-
-    private final Color[] PLAYER_COLORS = {Color.BLUE, Color.RED}; 
+    
     private final Color LAKE = Color.AQUA;
     private final Color LAND = Color.WHEAT;
     private final Color TRANSPARENT = Color.TRANSPARENT;
@@ -43,9 +42,12 @@ public class PieceView extends VBox {
     private int pieceIndex;
     private Color borderColor;
     private int borderWidth;
-    
+    private Piece piece;
     private boolean dragEnabled;
     private boolean dropEnabled;
+    
+    private int row;
+    private int col;
     
     /**
      * Constructor.
@@ -55,15 +57,18 @@ public class PieceView extends VBox {
      * MAJ = 8, COL = 9, GEN = 10, Marshall = 11)
      * @param borderColor - {@link Color} of the border
      * @param borderWidth - an integer representing the border width
-     */
+     */  
     public PieceView (int pieceIndex, Color borderColor, int borderWidth) {
         super();
-        
+        this.row = -1; // 'null' value
+        this.col = -1; // 'null' value
         this.pieceIndex = pieceIndex;
         this.borderColor = borderColor;
         this.borderWidth = borderWidth;
         dragEnabled = true;
         dropEnabled = true;
+        
+        setPiece();
         initBackground(pieceIndex);
         
         Rectangle r = new Rectangle(SIZE, SIZE, TRANSPARENT);
@@ -115,8 +120,9 @@ public class PieceView extends VBox {
             if(dropEnabled) {
                 System.out.print("Drag exited ");
                 testPrintPiece();
-                // reseting to original color (mouse drag no longer over)
-                setBorderColor(borderColor);
+                // reseting to stored color value (mouse drag no longer over)
+                setBorderColor(this.borderColor);
+                e.consume();
             }
         });
         
@@ -126,38 +132,35 @@ public class PieceView extends VBox {
             boolean success = false;
             
             if(db.hasString() && this.dropEnabled) {
-
+                
+                //TODO check with controller for valid position
+                
                 String rawInfo = db.getString();
                 String[] info = rawInfo.split(" ");
-                //Color color = Color.RED;
-                //String blue = info[1].substring(6,8);
-                //if(blue.equals("ff")) { color = Color.BLUE; }
+                setBorderWidth(Integer.parseInt(info[2]));
+                initBackground(Integer.parseInt(info[0]));
+                
+                // Changing border color value (drag over exit event will actually set the border color)
+                this.borderColor = Color.web(info[1]);
+
+                success = true;
+                
+
                 System.out.print("Drag ended on ");
                 testPrintPiece();
                 System.out.printf("String: %s %s %s\n", info[0], info[1], info[2]);
+                System.out.printf("Dropped on row %d and col %d\n", row, col);
+                //System.out.println(color.toString());
                 
-                
-                //this.borderColor = Color.BLUE;
-                //setBorderColor(Color.BLUE);
-                setBorderWidth(Integer.parseInt(info[2]));
-                initBackground(Integer.parseInt(info[0]));
- 
-                System.out.println(color.toString());
-
-                setBorderColor(Color.web(info[1]));
-
-                success = true;
             }
             e.setDropCompleted(success);
             e.consume();
             
         });
     }
-    
-    private void testPrintPiece() {
-                         //  -2      -1       0        1     2      3       4         5     6       7     8      9      10      11
-        String[] pieces = {"Lake", "Land", "Flag", "Bomb", "Spy", "Scout", "Miner", "SGT", "LT", "CPT", "MAJ", "COL", "GEN", "Marshal"};
-        System.out.printf("%s\n", pieces[pieceIndex + 2]);
+
+    public PieceView(int pieceIndex, Color borderColor) { 
+        this(pieceIndex, borderColor, 3);  // default border width is 3
     }
     
     private void initBackground(int pieceIndex) {
@@ -213,10 +216,66 @@ public class PieceView extends VBox {
         r.setStrokeWidth(width);
     }
     
-    private void setSquareColor(Color color) {
-        Rectangle r = (Rectangle) this.getChildren().get(0);
-        
+    public void setDragEnabled(boolean enabled) { this.dragEnabled = enabled; }
+    
+    public void setDropEnabled(boolean enabled) { this.dropEnabled = enabled; }
+    
+    private void setPiece() {
+        switch(pieceIndex) {
+        case -2:
+            piece = Piece.LAKE;
+            break;
+        case -1:
+            piece = Piece.EMPTY;
+            break;
+        case 0:
+            piece = Piece.FLAG;
+            break;
+        case 1:
+            piece = Piece.BOMB;
+            break;
+        case 2:
+            piece = Piece.SPY;
+            break;
+        case 3:
+            piece = Piece.SCOUT;
+            break;
+        case 4:
+            piece = Piece.MINER;
+            break;
+        case 5:
+            piece = Piece.SERGEANT;
+            break;
+        case 6:
+            piece = Piece.LIEUTENANT;
+            break;
+        case 7:
+            piece = Piece.CAPTAIN;
+            break;
+        case 8:
+            piece = Piece.MAJOR;
+            break;
+        case 9:
+            piece = Piece.COLONEL;
+            break;
+        case 10:
+            piece = Piece.GENERAL;
+            break;
+        case 11:
+            piece = Piece.MARSHAL;
+            break;
+        }
     }
+    
+    public Piece getPiece() {
+        return this.piece;
+    }
+    
+    public void setPosition(int row, int col) {
+        this.row = row;
+        this.col = col;
+    }
+    
     
     public String toString() {
         String str = String.valueOf(pieceIndex) + " " 
@@ -225,11 +284,9 @@ public class PieceView extends VBox {
         return str;
     }
     
-    public void setDragEnabled(boolean enabled) {
-        this.dragEnabled = enabled;
-    }
-    
-    public void setDropEnabled(boolean enabled) {
-        this.dropEnabled = enabled;
+    private void testPrintPiece() {
+                         //  -2      -1       0        1     2      3       4         5     6       7     8      9      10      11
+        String[] pieces = {"Lake", "Land", "Flag", "Bomb", "Spy", "Scout", "Miner", "SGT", "LT", "CPT", "MAJ", "COL", "GEN", "Marshal"};
+        System.out.printf("%s\n", pieces[pieceIndex + 2]);
     }
 }
