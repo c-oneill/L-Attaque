@@ -1,9 +1,9 @@
 package stratego;
 
 /**
- * Enum type Piece defines the piece types availible in Stratego. Playable and
+ * Piece defines the piece types availible in Stratego. Playable and
  * non-playable types.
- * </p> This enum includes some of the logic for how pieces can move on the
+ * </p> This class includes some of the logic for how pieces can move on the
  * board: moveable vs unmoveable, scouts move like rooks in chass, and other 
  * non-scout moveable pieces may only move one space horizontally/vertically.
  * </p> It also includes logic for piece interactions with attack/defense:
@@ -18,38 +18,47 @@ package stratego;
  * @author Caroline O'Neill
  *
  */
-public enum Piece 
+public class Piece 
 {
-	EMPTY(false, -1),
-	LAKE(false, -2),
-	
-	MARSHAL(true, 9),
-	GENERAL(true, 8),
-	COLONEL(true, 7),
-	MAJOR(true, 6),
-	CAPTAIN(true, 5),
-	LIEUTENANT(true, 4),
-	SERGEANT(true, 3),
-	MINER(true, 2),
-	SCOUT(true, 1),
-	
-	BOMB(false, 0),
-	SPY(true, 0),
-	FLAG(false, 0);
-	
 	public static final int NONE = 0; // neither player
 	public static final int BLUE = 1; // top/client
 	public static final int RED = 2; // bottom/server
 	
-	private boolean moveable;
-	private int level;
-	private int color;
+	private int color = NONE;
+	public final PieceType type;
 	
-	private Piece(boolean moveable, int level)
+	public Piece(PieceType type)
 	{
-		this.moveable = moveable;
-		this.level = level;
-		this.color = NONE;
+		this.type = type;
+	}
+	
+	public enum PieceType
+	{
+		EMPTY(false, -1),
+		LAKE(false, -2),
+		
+		MARSHAL(true, 9),
+		GENERAL(true, 8),
+		COLONEL(true, 7),
+		MAJOR(true, 6),
+		CAPTAIN(true, 5),
+		LIEUTENANT(true, 4),
+		SERGEANT(true, 3),
+		MINER(true, 2),
+		SCOUT(true, 1),
+		
+		BOMB(false, 0),
+		SPY(true, 0),
+		FLAG(false, 0);
+		
+		private boolean moveable;
+		private int level;
+		
+		private PieceType(boolean moveable, int level)
+		{
+			this.moveable = moveable;
+			this.level = level;
+		}
 	}
 	
 	/**
@@ -62,33 +71,33 @@ public enum Piece
 	 * cant't end up in the lakes 
 	 * (row, col) : {(4,2)(4,3)(5,2)(5,3)(4,6)(4,7)(5,6)(5,7)
 	 * 
-	 * @param currRow current Row coordinate of piece
-	 * @param currCol current Col coordinate of piece
-	 * @param row next Row of piece
-	 * @param col next Col of piece
+	 * @param srcRow source row coordinate of piece
+	 * @param srcCol source column coordinate of piece
+	 * @param dstRow destination of piece
+	 * @param dstCol destination column of piece
 	 * @param piece piece being moved
 	 * @return true if a valid move, false otherwise
 	 */
-	public static boolean isMoveValid(int currRow, int currCol, int row, int col, Piece piece)
+	public static boolean isMoveValid(int srcRow, int srcCol, int dstRow, int dstCol, PieceType pieceType)
 	{
 		// can the piece move
-		if(!piece.moveable)
+		if(!pieceType.moveable)
 			return false;
 		
 		// does the move remain on the board
-		if (col >= StrategoModel.COLUMNS || row >= StrategoModel.ROWS)
+		if (dstCol >= StrategoModel.COLUMNS || dstRow >= StrategoModel.ROWS)
 			return false;
 		
 		// does the move land in the lakes
-		if ((row == 4 || row == 5) && (col == 2 || col == 3 || col == 6 || col == 7))
+		if ((dstRow == 4 || dstRow == 5) && (dstCol == 2 || dstCol == 3 || dstCol == 6 || dstCol == 7))
 			return false;
 		
 		// moveable piece is not a Scout - should move one square at a time
-		if (piece != Piece.SCOUT && (Math.abs(currRow - row) != 1 || Math.abs(currCol - col) != 1))
+		if (pieceType != PieceType.SCOUT && (Math.abs(srcRow - dstRow) != 1 || Math.abs(srcCol - dstCol) != 1))
 			return false;
 		
-		// no diagonal moves -> currRow == row XOR currCol == col
-		return currRow == row ^ currCol == col;
+		// no diagonal moves -> srcRow == row XOR srcCol == col
+		return srcRow == dstRow ^ srcCol == dstCol;
 	}
 	
 	/**
@@ -104,19 +113,19 @@ public enum Piece
 	 */
 	public static int whoWins(Piece attacker, Piece defender)
 	{
-		if (!attacker.isMoveable() || defender == Piece.LAKE)
+		if (!attacker.isMoveable() || defender.type == PieceType.LAKE)
 			return -1;
 		
 		if (attacker.color() == defender.color())
-			return 0;
+			return -1;
 		
-		if (defender == Piece.BOMB)
-			if (attacker == Piece.MINER)
+		if (defender.type == PieceType.BOMB)
+			if (attacker.type == PieceType.MINER)
 				return 1;
 			else
 				return 2;
 		
-		if (attacker == Piece.SPY && defender == Piece.MARSHAL)
+		if (attacker.type == PieceType.SPY && defender.type == PieceType.MARSHAL)
 			return 1;
 				
 		if (attacker.level() == defender.level())
@@ -133,7 +142,7 @@ public enum Piece
 	 */
 	public boolean isMoveable()
 	{
-		return moveable;
+		return type.moveable;
 	}
 	
 	/**
@@ -142,7 +151,7 @@ public enum Piece
 	 */
 	public int level()
 	{
-		return level;
+		return type.level;
 	}
 	
 	/**
@@ -177,7 +186,7 @@ public enum Piece
 	@Override
 	public String toString()
 	{
-		return Integer.toString(level);
+		return Integer.toString(type.level);
 	}
 }
 
