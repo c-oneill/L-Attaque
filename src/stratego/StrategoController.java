@@ -1,6 +1,7 @@
 package stratego;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 import stratego.Piece.PieceType;
 
@@ -27,8 +28,8 @@ public class StrategoController
 {
 	private StrategoModel model;
 	
-	private Piece[][] blueInitialSetup;
-	private Piece[][] redInitialSetup;
+	private PieceType[][] blueInitialSetup;
+	private PieceType[][] redInitialSetup;
 	private HashMap<PieceType, Integer> blueAvailible; // piece : count 
 	private HashMap<PieceType, Integer> redAvailible; // piece :  count
 	
@@ -36,8 +37,8 @@ public class StrategoController
 	{
 		model = new StrategoModel();
 		
-		blueInitialSetup = new Piece[4][10];
-		redInitialSetup = new Piece[4][10];
+		blueInitialSetup = new PieceType[4][10];
+		redInitialSetup = new PieceType[4][10];
 		
 		blueAvailible = new HashMap<PieceType, Integer>();
 		blueAvailible.put(PieceType.MARSHAL, 1);
@@ -166,36 +167,95 @@ public class StrategoController
 	 * Adds Piece to initial setup for that color at the indicated position.
 	 * @param row row placement in setup
 	 * @param col col placement in setup
-	 * @param piece piece to place
+	 * @param pieceType type of piece to place
+	 * @param color color of piece to place
 	 * @return true if the piece is placed (valid position, valid piece), false 
 	 * if setup already has the max. number of that piece type 
 	 */
-	public boolean addToSetup(int row, int col, Piece piece)
+	public boolean addToSetup(int row, int col, PieceType pieceType, int color)
 	{
-		return false;
+		PieceType[][] initialSetup;
+		HashMap<PieceType, Integer> availible;
+		if (color == Piece.BLUE)
+		{
+			initialSetup = blueInitialSetup;
+			availible = blueAvailible;
+		}
+			
+		else if (color == Piece.RED)
+		{
+			initialSetup = redInitialSetup;
+			availible = redAvailible;
+		}
+		else
+			return false;
+		
+		PieceType currPlaced = initialSetup[row][col];
+		
+		// any of pieceType availible?
+		if (availible.get(pieceType) < 1)
+			return false;
+		
+		if (currPlaced == null) // new placement
+		{
+			availible.put(pieceType, availible.get(pieceType) - 1);	
+			initialSetup[row][col] = pieceType;
+		}
+		else // replacing a piece placement
+		{
+			availible.put(initialSetup[row][col], availible.get(pieceType) + 1);
+			availible.put(pieceType, availible.get(pieceType) - 1);
+			initialSetup[row][col] = pieceType;
+		}
+		return true;
 	}
 	
 	/**
-	 * Takes an initial setup grid and fills in the board. No action is taken if
-	 * any part of the board is not empty 
-	 * @param initialSetup
-	 * @param color
-	 * @return true if the setup is successful, false if that side is already
-	 * setup or has any pieces that are not {@link Piece#EMPTY} 
+	 * Takes an initial setup grid and fills in the board.
+	 * @param color color to setup
 	 */
-	public boolean setBoard(Piece[][] initialSetup, int color)
+	public void setBoard(int color)
 	{
-		// calls setBoard in Model which notifies observers
-		return false;
+		fillRemaining(color);
+		if (color == Piece.BLUE)
+			model.setBoard(blueInitialSetup, color);
+		else if (color == Piece.RED)
+			model.setBoard(redInitialSetup, color);
 	}
 	
 	/**
 	 * If fills an empty slots in the initial board setup if the user did not
 	 * indicate a piece for every space.
+	 * @param color player color
 	 */
-	private void fillRemaining()
+	private void fillRemaining(int color)
 	{
+		PieceType[][] initialSetup;
+		HashMap<PieceType, Integer> availible;
+		if (color == Piece.BLUE)
+		{
+			initialSetup = blueInitialSetup;
+			availible = blueAvailible;
+		}
+			
+		else // color == Piece.RED
+		{
+			initialSetup = redInitialSetup;
+			availible = redAvailible;
+		}
 		
+		Iterator<PieceType> it = availible.keySet().iterator();
+		
+		for (int r = 0; r < 4; r++)
+		{
+			for (int c = 0; c < 10; c++)
+			{
+				if (initialSetup[r][c] == null && it.hasNext())
+				{
+					initialSetup[r][c] = it.next();
+				}
+			}
+		}
 	}
 	
 	/**
@@ -206,7 +266,14 @@ public class StrategoController
 	 */
 	public int winner()
 	{
-		return 0;
+		if (model.getBluePieces().get(PieceType.FLAG) < 1)
+			return Piece.RED;
+		
+		else if (model.getRedPieces().get(PieceType.FLAG) < 1)
+			return Piece.BLUE;
+		
+		else
+			return Piece.NONE;
 	}
 			
 }
