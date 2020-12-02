@@ -45,6 +45,7 @@ public class PieceView extends VBox {
     private Piece piece;
     private boolean dragEnabled;
     private boolean dropEnabled;
+    private boolean isOnBoard;
     
     private int row;
     private int col;
@@ -129,7 +130,12 @@ public class PieceView extends VBox {
         // On drag detected event (the start of a drag and drop)
         this.setOnDragDetected( e-> {
             if(this.dragEnabled) {
-                Dragboard db = startDragAndDrop(TransferMode.ANY);
+                Dragboard db;
+                
+                // if on board transfer mode is move, if from the pieces box, copy
+                if(this.isOnBoard) { db = startDragAndDrop(TransferMode.MOVE); }
+                else { db = startDragAndDrop(TransferMode.COPY); }
+                
                 ClipboardContent content = new ClipboardContent();
                 content.putString(toString());
                 db.setContent(content);
@@ -138,7 +144,7 @@ public class PieceView extends VBox {
                     System.out.print("Drag started on ");
                     testPrintPiece();
                 }
-                    
+                this.startFullDrag();
             }
             e.consume();
         });
@@ -147,11 +153,13 @@ public class PieceView extends VBox {
         this.setOnDragOver(new EventHandler<DragEvent>() {
             @Override
             public void handle(DragEvent event) {
-                Dragboard db = event.getDragboard();
-                if (db.hasString()) {
-                    event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                if(dropEnabled) {
+                    Dragboard db = event.getDragboard();
+                    if (db.hasString()) {
+                        event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                    }
+                    event.consume();
                 }
-                event.consume();
             }
         });
         
@@ -198,10 +206,22 @@ public class PieceView extends VBox {
                 
                 //TODO check with controller for valid position
                 
+                
                 String rawInfo = db.getString();
                 String[] info = rawInfo.split(" ");
+                this.pieceIndex = Integer.parseInt(info[0]);
                 setBorderWidth(Integer.parseInt(info[2]));
-                initBackground(Integer.parseInt(info[0]));
+                setPiece();
+                initBackground(pieceIndex);
+                
+                // getting whether the moved piece came from the board (true) or the pieces box (false)
+                boolean fromBoard = (info[3].substring(0, 4).equals("true"));
+                if(fromBoard) {
+                    //System.out.println("From Board!");
+                   
+                }else {
+                    //System.out.println("Not From board!");
+                }
                 
                 // Changing border color value (drag over exit event will actually set the border color)
                 this.borderColor = Color.web(info[1]);
@@ -218,6 +238,7 @@ public class PieceView extends VBox {
                 
             }
             e.setDropCompleted(success);
+           
             e.consume();
             
         });
@@ -427,6 +448,9 @@ public class PieceView extends VBox {
         this.col = col;
     }
     
+    public void setIsOnBoard(boolean isOnBoard) {
+        this.isOnBoard = isOnBoard;
+    }
     
     /**
      * <ul><b><i>toString</i></b></ul>
@@ -442,7 +466,8 @@ public class PieceView extends VBox {
     public String toString() {
         String str = String.valueOf(pieceIndex) + " " 
                    + String.valueOf(borderColor) + " " 
-                   + String.valueOf(borderWidth);
+                   + String.valueOf(borderWidth) + " "
+                   + String.valueOf(isOnBoard);
         return str;
     }
     
@@ -460,4 +485,5 @@ public class PieceView extends VBox {
         String[] pieces = {"Lake", "Land", "Flag", "Bomb", "Spy", "Scout", "Miner", "SGT", "LT", "CPT", "MAJ", "COL", "GEN", "Marshal"};
         System.out.printf("%s\n", pieces[pieceIndex + 2]);
     }
+    
 }
