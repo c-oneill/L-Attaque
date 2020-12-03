@@ -38,11 +38,13 @@ public class StrategoView extends Application implements Observer{
     private final int SETUP_INDEX_START = 60;
     private final int SETUP_INDEX_END = 100;
     private final int GRID_BORDERS = 3;
-    private final int WINDOW_HEIGHT = 1000;
-    private final int WINDOW_WIDTH = 1000;
+    private final int WINDOW_HEIGHT = 800;
+    private final int WINDOW_WIDTH = 1100;
     private final int CHATBOX_WIDTH = 300;
+    private final int PIECES_ROWS = 6;
+    private final int PIECES_COLS = 2;
     private final int TIMER_COLUMN = 9;
-    private int DEFAULT_TIME = 5000; //120000; // 2 mins
+    private int DEFAULT_TIME = 120000; // 2 mins
     private Stage stage;
     private BorderPane window;
     private GridPane board;
@@ -127,7 +129,7 @@ public class StrategoView extends Application implements Observer{
         window.setTop(menuBar);
         window.setCenter(board);
         window.setRight(chatBox);
-        window.setBottom(piecesBox);
+        window.setLeft(piecesBox);
         
     }
     
@@ -234,19 +236,18 @@ public class StrategoView extends Application implements Observer{
         // creating piece layout at bottom
         piecesBox.getChildren().clear();
         int pieceIndex = 0;
-        for(int row = 0; row < 2; row++) {
-            for(int col = 0; col < 6; col++) {
+        for(int row = 0; row < PIECES_ROWS; row++) {
+            for(int col = 0; col < PIECES_COLS; col++) {
                 PieceView pv = new PieceView(pieceIndex, playerColor);
                 pv.setDropEnabled(false); // can't drop pieces onto the bottom piece tray
                 piecesBox.add(pv , col, row);
                 pieceIndex++;
             }
-            // Spacers for the timer
-            for(int col = 6; col < TIMER_COLUMN; col++) {
-                VBox empty = new VBox(70);
-                empty.setPrefWidth(70);
-                piecesBox.add(empty, col, row);
-            }
+            // Spacer for the timer
+            VBox empty = new VBox(70);
+            empty.setPrefWidth(70);
+            piecesBox.add(empty, 0, PIECES_ROWS);
+            
         }
         
 
@@ -260,25 +261,29 @@ public class StrategoView extends Application implements Observer{
      *
      */
     private void initTimer() {
-        int row = 0;
+        int row = PIECES_ROWS + 2;
         int span = 2;
         Font font = new Font(48);
-        clockFace = new Label("02:00");
+        clockFace = new Label(" 02:00");
         clockFace.setFont(font);
         clockFace.setAlignment(Pos.CENTER_RIGHT);
         clockFace.prefWidth(200);
         clockFace.prefHeight(200);
         clockFace.setVisible(false);
-        piecesBox.add(clockFace, TIMER_COLUMN, row, span, span);
+        piecesBox.add(clockFace, 0, row, span, span);
         
         setupDone = new Button("Setup Done");
         setupDone.setVisible(false);
+        setupDone.setPrefWidth(150);
+        setupDone.autosize();
+        setupDone.setAlignment(Pos.CENTER);
         setupDone.setOnAction(e -> { 
-            timer.stopTimer(); 
             setupBoardEnable(false);
             //TODO notify connection of setup completion
+            //TODO let timer run until other player is done also
+            timer.stopTimer(); 
             });
-        piecesBox.add(setupDone, TIMER_COLUMN - 2, row, span, span);
+        piecesBox.add(setupDone, 0, row + 3, span, span);
     }
     
     /**
@@ -304,7 +309,7 @@ public class StrategoView extends Application implements Observer{
                 Platform.runLater(
                         () -> {
                             String time = timer.getTime().get();
-                            clockFace.setText(time);
+                            clockFace.setText(" " + time);
                             if(time.equals("00:00")) {
                                 endSetup();
                             }
