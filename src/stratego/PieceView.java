@@ -10,6 +10,7 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.input.*;
@@ -47,7 +48,7 @@ public class PieceView extends VBox {
     private boolean dragEnabled;
     private boolean dropEnabled;
     private boolean isOnBoard;
-    
+    private Label label;
     private int row;
     private int col;
     
@@ -75,11 +76,19 @@ public class PieceView extends VBox {
         dragEnabled = true;
         dropEnabled = true;
         
-        setPiece();
+        label = new Label();
+        setPieceType();
         initBackground(pieceIndex);
         initBorder();
         setEvents();
         
+    }
+    
+    public void setLabelText(String text) {
+        label.setText(text);
+    }
+    public Label getLabel() {
+        return this.label;
     }
     
     /**
@@ -212,16 +221,18 @@ public class PieceView extends VBox {
                 String[] info = rawInfo.split(" ");
                 this.pieceIndex = Integer.parseInt(info[0]);
                 setBorderWidth(Integer.parseInt(info[2]));
-                setPiece();
+                setPieceType();
                 initBackground(pieceIndex);
                 
                 // getting whether the moved piece came from the board (true) or the pieces box (false)
                 boolean fromBoard = (info[3].substring(0, 4).equals("true"));
                 if(fromBoard) {
                     //System.out.println("From Board!");
-                   
+                    
                 }else {
                     //System.out.println("Not From board!");
+                    
+                    //StrategoView.updateLabel(pieceIndex);
                 }
                 
                 // Changing border color value (drag over exit event will actually set the border color)
@@ -373,51 +384,8 @@ public class PieceView extends VBox {
      * @author Kristopher Rangel
      *
      */
-    private void setPiece() {
-        switch(pieceIndex) {
-        case -2:
-            piece = PieceType.LAKE;
-            break;
-        case -1:
-            piece = PieceType.EMPTY;
-            break;
-        case 0:
-            piece = PieceType.FLAG;
-            break;
-        case 1:
-            piece = PieceType.BOMB;
-            break;
-        case 2:
-            piece = PieceType.SPY;
-            break;
-        case 3:
-            piece = PieceType.SCOUT;
-            break;
-        case 4:
-            piece = PieceType.MINER;
-            break;
-        case 5:
-            piece = PieceType.SERGEANT;
-            break;
-        case 6:
-            piece = PieceType.LIEUTENANT;
-            break;
-        case 7:
-            piece = PieceType.CAPTAIN;
-            break;
-        case 8:
-            piece = PieceType.MAJOR;
-            break;
-        case 9:
-            piece = PieceType.COLONEL;
-            break;
-        case 10:
-            piece = PieceType.GENERAL;
-            break;
-        case 11:
-            piece = PieceType.MARSHAL;
-            break;
-        }
+    private void setPieceType() {
+        piece = convertPieceIndexToType(pieceIndex);
     }
     
     /**
@@ -431,7 +399,7 @@ public class PieceView extends VBox {
      * 
      * @author Kristopher Rangel
      */
-    public PieceType getPiece() {
+    public PieceType getPieceType() {
         return this.piece;
     }
     
@@ -487,4 +455,52 @@ public class PieceView extends VBox {
         System.out.printf("%s\n", pieces[pieceIndex + 2]);
     }
     
+    public static PieceType convertPieceIndexToType(int pieceIndex) {
+        PieceType pieceType = null;
+        switch(pieceIndex) {
+        case -2:
+            pieceType = PieceType.LAKE;
+            break;
+        case -1:
+            pieceType = PieceType.EMPTY;
+            break;
+        case 0:
+            pieceType = PieceType.FLAG;
+            break;
+        case 1:
+            pieceType = PieceType.BOMB;
+            break;
+        case 2:
+            pieceType = PieceType.SPY;
+            break;
+        case 3:
+            pieceType = PieceType.SCOUT;
+            break;
+        case 4:
+            pieceType = PieceType.MINER;
+            break;
+        case 5:
+            pieceType = PieceType.SERGEANT;
+            break;
+        case 6:
+            pieceType = PieceType.LIEUTENANT;
+            break;
+        case 7:
+            pieceType = PieceType.CAPTAIN;
+            break;
+        case 8:
+            pieceType = PieceType.MAJOR;
+            break;
+        case 9:
+            pieceType = PieceType.COLONEL;
+            break;
+        case 10:
+            pieceType = PieceType.GENERAL;
+            break;
+        case 11:
+            pieceType = PieceType.MARSHAL;
+            break;
+        }
+        return pieceType;
+    }
 }

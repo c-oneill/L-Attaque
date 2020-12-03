@@ -3,6 +3,7 @@ package stratego;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.List;
+import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -14,6 +15,7 @@ import javafx.scene.text.Font;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import stratego.Piece.PieceType;
 import javafx.beans.InvalidationListener;
 /**
  * This class serves as the UI for the Stratego program.
@@ -38,12 +40,12 @@ public class StrategoView extends Application implements Observer{
     private final int SETUP_INDEX_START = 60;
     private final int SETUP_INDEX_END = 100;
     private final int GRID_BORDERS = 3;
-    private final int WINDOW_HEIGHT = 800;
+    private final int WINDOW_HEIGHT = 825;
     private final int WINDOW_WIDTH = 1100;
     private final int CHATBOX_WIDTH = 300;
-    private final int PIECES_ROWS = 6;
+    private final int PIECES_ROWS = 12;
     private final int PIECES_COLS = 2;
-    private final int TIMER_COLUMN = 9;
+    private final int COUNT_FONT_SIZE = 14;
     private int DEFAULT_TIME = 120000; // 2 mins
     private Stage stage;
     private BorderPane window;
@@ -58,7 +60,8 @@ public class StrategoView extends Application implements Observer{
     private Timer timer;
     private Button setupDone;
     private Color playerColor;
-    
+    private static ArrayList<Label> countLabels;
+    public static boolean setupChanged;
     private boolean inputEnabled;
     private boolean isServer;
     
@@ -75,13 +78,12 @@ public class StrategoView extends Application implements Observer{
      */
     @Override
     public void start(Stage stage) {
-        
-        controller = new StrategoController();
-        //controller.setModelObserver(this);
+
         Scene scene = new Scene(window);
         
         // Showing stage
         try {
+            setupChanged = false;
             inputEnabled = false;
             
             // setting the stage
@@ -93,6 +95,8 @@ public class StrategoView extends Application implements Observer{
             stage.show();
             this.stage = stage;
 
+        
+            
         }catch(Exception e) {
             if(ENABLE_CONSOLE_DEBUG) {
                 System.out.println("Error with javafx while initializing the UI.");
@@ -117,6 +121,8 @@ public class StrategoView extends Application implements Observer{
     public void init() {
         
         playerColor = Color.BLUE;
+        controller = new StrategoController();
+        controller.setModelObserver(this);
         
         initMenuBar();
         initBoard();
@@ -218,6 +224,7 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel
      */
     private void initPieces() {
+        countLabels = new ArrayList<Label>();
         String[] rank_images = {"ranks_flag.png","ranks_bomb.png", "ranks_1-spy.png", "ranks_2-scout.png",
                                 "ranks_3-Miner.png", "ranks_4-SGT.png", "ranks_5-LT.png", "ranks_6-CPT.png",
                                 "ranks_7-MAJ.png", "ranks_8-COL.png", "ranks_9-GEN.png", "ranks_10-Marshall.png"};
@@ -236,11 +243,23 @@ public class StrategoView extends Application implements Observer{
         // creating piece layout at bottom
         piecesBox.getChildren().clear();
         int pieceIndex = 0;
-        for(int row = 0; row < PIECES_ROWS; row++) {
+        
+        for(int row = 0; row < PIECES_ROWS; row += 2) {
             for(int col = 0; col < PIECES_COLS; col++) {
                 PieceView pv = new PieceView(pieceIndex, playerColor);
                 pv.setDropEnabled(false); // can't drop pieces onto the bottom piece tray
                 piecesBox.add(pv , col, row);
+                
+                int count = controller.checkAvailable(pv.getPieceType(), playerColor);
+
+                pv.setLabelText(String.valueOf(count));
+                Label label = pv.getLabel();
+                label.setAlignment(Pos.CENTER);
+                label.setMaxWidth(Double.MAX_VALUE);
+                label.setFont(new Font(COUNT_FONT_SIZE));
+                countLabels.add(label);
+                piecesBox.add(label, col, row + 1, 1 , 1);
+                
                 pieceIndex++;
             }
             // Spacer for the timer
@@ -250,7 +269,23 @@ public class StrategoView extends Application implements Observer{
             
         }
         
+        
+    }
 
+    
+    
+    
+   
+    
+    
+    public void updateLabels() {
+        int index = 0;
+        for(Label l : countLabels) {
+            PieceType pieceType = PieceView.convertPieceIndexToType(index);
+            int count = controller.checkAvailable(pieceType, playerColor);
+            l.setText(String.valueOf(count));
+            index++;
+        }
     }
     
     /**
@@ -261,10 +296,10 @@ public class StrategoView extends Application implements Observer{
      *
      */
     private void initTimer() {
-        int row = PIECES_ROWS + 2;
+        int row = PIECES_ROWS + 1;
         int span = 2;
         Font font = new Font(48);
-        clockFace = new Label(" 02:00");
+        clockFace = new Label("02:00");
         clockFace.setFont(font);
         clockFace.setAlignment(Pos.CENTER_RIGHT);
         clockFace.prefWidth(200);
@@ -283,7 +318,7 @@ public class StrategoView extends Application implements Observer{
             //TODO let timer run until other player is done also
             timer.stopTimer(); 
             });
-        piecesBox.add(setupDone, 0, row + 3, span, span);
+        piecesBox.add(setupDone, 0, row + 2, span, span);
     }
     
     /**
@@ -373,6 +408,14 @@ public class StrategoView extends Application implements Observer{
         
     }
     
+    /**
+     * <ul><b><i>endSetup</i></b></ul>
+     * <ul><ul><p><code>private void endSetup () </code></p></ul>
+     *
+     *  Performs actions required at the conclusion of the "setup" period before play.
+     *
+     * @author Kristopher Rangel
+     */
     private void endSetup() {
         setupBoardEnable(false);
         
@@ -384,6 +427,7 @@ public class StrategoView extends Application implements Observer{
         List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
         setupArea.forEach( e -> {
             PieceView pv = (PieceView) e;
+            //TODO maybe disable drag on setup area
             pv.setDragEnabled(enableSetup);
             pv.setDropEnabled(enableSetup);
         } );
@@ -403,6 +447,19 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel 
      */
     public void update(Observable o, Object arg) {
-        
+        if(setupChanged) { 
+            updateLabels();
+            
+        }else {
+            
+            
+            
+            
+            
+            
+            
+            
+            
+        }
     }
 }

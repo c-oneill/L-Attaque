@@ -2,7 +2,7 @@ package stratego;
 
 import java.util.HashMap;
 import java.util.Iterator;
-
+import javafx.scene.paint.Color;
 import stratego.Piece.PieceType;
 
 /**
@@ -275,7 +275,28 @@ public class StrategoController
 		else
 			return Piece.NONE;
 	}
-	
+	/**
+	 * <ul><b><i>checkAvailable</i></b></ul>
+	 * <ul><ul><p><code>public int checkAvailable (PieceType pt, Color color) </code></p></ul>
+	 *
+	 * Returns the number of pieces available to place on the board during setup
+	 * for the given {@link PieceType}.
+	 *
+	 * @param pt - the <code>PieceType</code> to query
+	 * @param color - the {@link Color} of the piece to query
+	 * @return the count of pieces left in the given PieceType and color
+	 * 
+	 * @author Kristopher Rangel
+	 */
+	public int checkAvailable(PieceType pt, Color color) {
+        int count = 0;
+        if(color == Color.BLUE) {
+            count = blueAvailible.get(pt);
+        }else if (color == Color.RED) {
+            count = redAvailible.get(pt);
+        }
+        return count;
+    }
     /**
      * <ul><b><i>setModelObserver</i></b></ul>
      * <ul><ul><p><code>public void setModelObserver (StrategoView view) </code></p></ul>
