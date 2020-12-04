@@ -29,7 +29,7 @@ import javafx.beans.InvalidationListener;
 
 public class StrategoView extends Application implements Observer{
 
-    protected static final boolean ENABLE_CONSOLE_DEBUG = true;
+    protected static final boolean ENABLE_CONSOLE_DEBUG = false;
     
     private final int VGAP_PADDING = 8;
     private final int HGAP_PADDING = 8;
@@ -505,7 +505,7 @@ public class StrategoView extends Application implements Observer{
             for(int col = 0; col < 10; col++) {
                 Piece p = controller.getPosition(row, col);
                 PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
-                //pv.update(p);
+                pv.update(p);
                 if(ENABLE_CONSOLE_DEBUG)
                     System.out.printf("%d ", pv.convertPieceTypeToIndex(p.type));
             }
