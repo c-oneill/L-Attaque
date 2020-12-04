@@ -255,7 +255,7 @@ public class StrategoView extends Application implements Observer{
         
         for(int row = 0; row < PIECES_ROWS; row += 2) {
             for(int col = 0; col < PIECES_COLS; col++) {
-                PieceView pv = new PieceView(pieceIndex, playerColor);
+                PieceView pv = new PieceView(pieceIndex, BOARD_GRID_COLOR);
                 pv.setDropEnabled(false); // can't drop pieces onto the bottom piece tray
                 pieces.add(pv);
                 piecesBox.add(pv , col, row);
@@ -286,7 +286,10 @@ public class StrategoView extends Application implements Observer{
     }
 
     private void changePieceBoxColor(Color borderColor) {
-        
+        for(PieceView pv : pieces) {
+            pv.setBorderColor(borderColor);
+            pv.saveBorderColor(borderColor);
+        }
     }
     
     /**
@@ -444,7 +447,7 @@ public class StrategoView extends Application implements Observer{
         
         startTimer();
         setupEnabled = true;
-        
+        changePieceBoxColor(playerColor);
         
         // Enabling drop on setup area of board
         List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
