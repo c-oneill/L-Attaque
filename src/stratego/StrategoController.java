@@ -2,6 +2,8 @@ package stratego;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+
 import javafx.scene.paint.Color;
 import stratego.Piece.PieceType;
 
@@ -244,15 +246,33 @@ public class StrategoController
 			availible = redAvailible;
 		}
 		
-		Iterator<PieceType> it = availible.keySet().iterator();
+		Iterator<Map.Entry<PieceType, Integer>> it = availible.entrySet().iterator();
+		
+		Map.Entry<PieceType, Integer> entry = null;
+		
+		if (it.hasNext())
+			entry = it.next();
+		else
+			return;
 		
 		for (int r = 0; r < 4; r++)
 		{
 			for (int c = 0; c < 10; c++)
 			{
-				if (initialSetup[r][c] == null && it.hasNext())
+				// empty slot in initialSetup
+				if (initialSetup[r][c] == null)
 				{
-					initialSetup[r][c] = it.next();
+					// max. number of piece type has already been placed
+					while (entry.getValue() < 1)
+					{
+						it.remove();
+						if (it.hasNext())
+							entry = it.next();
+						else
+							return;
+					}
+					initialSetup[r][c] = entry.getKey();
+					availible.put(entry.getKey(), entry.getValue() - 1);
 				}
 			}
 		}
