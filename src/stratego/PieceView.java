@@ -211,7 +211,7 @@ public class PieceView extends VBox {
         this.setOnDragDropped(e -> {
             Dragboard db = e.getDragboard();
             boolean success = false;
-            
+            int oldPiece = pieceIndex; // saving previous piece
             if(db.hasString() && this.dropEnabled) {
                 
                 //TODO check with controller for valid position
@@ -229,10 +229,18 @@ public class PieceView extends VBox {
                 if(fromBoard) {
                     //System.out.println("From Board!");
                     
-                }else {
-                    //System.out.println("Not From board!");
+                        
                     
-                    //StrategoView.updateLabel(pieceIndex);
+                    
+                    
+                }else { // Not from board (placed during setup)
+                    if(oldPiece != pieceIndex){ // if pieced placed is not the same piece already there
+                        StrategoView.updateLabels(pieceIndex, -1); // decrement count of new piece
+                        
+                        if(oldPiece >= 0) {  // If position on board was occupied by another piece
+                            StrategoView.updateLabels(oldPiece, 1); // increment count of old piece
+                        }
+                    } 
                 }
                 
                 // Changing border color value (drag over exit event will actually set the border color)

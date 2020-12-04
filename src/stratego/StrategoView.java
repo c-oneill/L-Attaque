@@ -61,7 +61,8 @@ public class StrategoView extends Application implements Observer{
     private Button setupDone;
     private Color playerColor;
     private static ArrayList<Label> countLabels;
-    public static boolean setupChanged;
+    private static ArrayList<PieceView> pieces; // pieces for setup
+    public static boolean setupEnabled;
     private boolean inputEnabled;
     private boolean isServer;
     
@@ -83,7 +84,7 @@ public class StrategoView extends Application implements Observer{
         
         // Showing stage
         try {
-            setupChanged = false;
+            setupEnabled = false;
             inputEnabled = false;
             
             // setting the stage
@@ -225,6 +226,7 @@ public class StrategoView extends Application implements Observer{
      */
     private void initPieces() {
         countLabels = new ArrayList<Label>();
+        pieces = new ArrayList<PieceView>();
         String[] rank_images = {"ranks_flag.png","ranks_bomb.png", "ranks_1-spy.png", "ranks_2-scout.png",
                                 "ranks_3-Miner.png", "ranks_4-SGT.png", "ranks_5-LT.png", "ranks_6-CPT.png",
                                 "ranks_7-MAJ.png", "ranks_8-COL.png", "ranks_9-GEN.png", "ranks_10-Marshall.png"};
@@ -248,6 +250,7 @@ public class StrategoView extends Application implements Observer{
             for(int col = 0; col < PIECES_COLS; col++) {
                 PieceView pv = new PieceView(pieceIndex, playerColor);
                 pv.setDropEnabled(false); // can't drop pieces onto the bottom piece tray
+                pieces.add(pv);
                 piecesBox.add(pv , col, row);
                 
                 int count = controller.checkAvailable(pv.getPieceType(), playerColor);
@@ -276,15 +279,21 @@ public class StrategoView extends Application implements Observer{
     
     
    
+    public static int getLeft(int pieceIndex) {
+        Label l = countLabels.get(pieceIndex);
+        return Integer.valueOf(l.getText());
+    }
     
     
-    public void updateLabels() {
-        int index = 0;
-        for(Label l : countLabels) {
-            PieceType pieceType = PieceView.convertPieceIndexToType(index);
-            int count = controller.checkAvailable(pieceType, playerColor);
-            l.setText(String.valueOf(count));
-            index++;
+    public static void updateLabels(int index, int change) {
+        Label l = countLabels.get(index);
+        int count = Integer.valueOf(l.getText());
+        count += change;
+        l.setText(String.valueOf(count));
+        if(count == 0) {
+            pieces.get(index).setDragEnabled(false);
+        }else {
+            pieces.get(index).setDragEnabled(true);
         }
     }
     
@@ -423,12 +432,12 @@ public class StrategoView extends Application implements Observer{
     }
     
     private void setupBoardEnable(boolean enableSetup) {
-
+        setupEnabled = enableSetup;
         List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
         setupArea.forEach( e -> {
             PieceView pv = (PieceView) e;
             //TODO maybe disable drag on setup area
-            pv.setDragEnabled(enableSetup);
+            //pv.setDragEnabled(enableSetup);
             pv.setDropEnabled(enableSetup);
         } );
     }
@@ -447,10 +456,7 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel 
      */
     public void update(Observable o, Object arg) {
-        if(setupChanged) { 
-            updateLabels();
-            
-        }else {
+       
             
             
             
@@ -460,6 +466,6 @@ public class StrategoView extends Application implements Observer{
             
             
             
-        }
+  
     }
 }
