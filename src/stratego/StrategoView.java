@@ -506,6 +506,14 @@ public class StrategoView extends Application implements Observer{
                 Piece p = controller.getPosition(row, col);
                 PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
                 pv.update(p);
+                
+                // setting border color
+                Color c = Color.BLACK;
+                if(p.color() == 1) { c = Color.BLUE; }
+                else if (p.color() == 2) { c = Color.RED; } 
+                pv.setBorderColor(c);
+                pv.saveBorderColor(c);
+                
                 if(ENABLE_CONSOLE_DEBUG)
                     System.out.printf("%d ", pv.convertPieceTypeToIndex(p.type));
             }

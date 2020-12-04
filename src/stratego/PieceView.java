@@ -225,8 +225,6 @@ public class PieceView extends VBox {
                 setBorderWidth(Integer.parseInt(info[2]));
                 
                 update();
-                //setPieceType();
-                //initBackground(pieceIndex);
                 
                 // getting whether the moved piece came from the board (true) or the pieces box (false)
                 boolean fromBoard = (info[3].substring(0, 4).equals("true"));
@@ -342,9 +340,13 @@ public class PieceView extends VBox {
      * 
      * @author Kristopher Rangel
      */
-    private void setBorderColor(Color color) {
+    public void setBorderColor(Color color) {
         Rectangle r = (Rectangle) this.getChildren().get(0);
         r.setStroke(color);
+    }
+    
+    public void saveBorderColor(Color color) {
+        this.borderColor = color;
     }
     
     /**
