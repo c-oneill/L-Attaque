@@ -285,6 +285,9 @@ public class StrategoView extends Application implements Observer{
         
     }
 
+    private void changePieceBoxColor(Color borderColor) {
+        
+    }
     
     /**
      * <ul><b><i>updateLabels</i></b></ul>
@@ -441,6 +444,9 @@ public class StrategoView extends Application implements Observer{
         
         startTimer();
         setupEnabled = true;
+        
+        
+        // Enabling drop on setup area of board
         List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
         setupArea.forEach( e -> {
             PieceView pv = (PieceView) e;
@@ -460,7 +466,6 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel
      */
     private void endSetup() {
-        setupEnabled = false;
         
         if(isServer) {
 
@@ -477,8 +482,10 @@ public class StrategoView extends Application implements Observer{
         }
         
         
-        // Requesting that controller update the model
+        // Requesting that controller update the model (this will trigger an update() to the StrategoView)
         controller.setBoard(colorInt);
+        // Zeroing out quantity labels in event controller auto-filled any of the board
+        for(Label l : countLabels) { l.setText("0"); }
         
         //TODO need to coordinate server/client setup completion before next
         
@@ -507,7 +514,7 @@ public class StrategoView extends Application implements Observer{
                 PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
                 pv.update(p);
                 
-                // setting border color
+                // setting border color (no piece is black, else colored by piece color)
                 Color c = Color.BLACK;
                 if(p.color() == 1) { c = Color.BLUE; }
                 else if (p.color() == 2) { c = Color.RED; } 
@@ -535,11 +542,20 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel 
      */
     public void update(Observable o, Object arg) {
-       
+        if(setupEnabled) {
+            setupEnabled = false;
+            System.out.println("setup disabled");
+            //TODO anything that needs to be done once, following setup
+        }else {
+            // Everything else not dependent upon imediately following setup
             
+        }
+        
+        
+        if(ENABLE_CONSOLE_DEBUG) {
             System.out.println("notified");
-            
-            
+        }
+
 
   
     }
