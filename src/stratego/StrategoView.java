@@ -15,8 +15,8 @@ import javafx.scene.text.Font;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import stratego.Piece.PieceType;
 import javafx.beans.InvalidationListener;
+
 /**
  * This class serves as the UI for the Stratego program.
  * 
@@ -59,7 +59,11 @@ public class StrategoView extends Application implements Observer{
     private StrategoController controller;
     private Timer timer;
     private Button setupDone;
+    
     private Color playerColor;
+    private int colorInt;
+    private int setupStartRow;
+    
     private static ArrayList<Label> countLabels;
     private static ArrayList<PieceView> pieces; // pieces for setup
     public static boolean setupEnabled;
@@ -121,7 +125,7 @@ public class StrategoView extends Application implements Observer{
      */
     public void init() {
         
-        playerColor = Color.BLUE;
+        playerColor = Color.RED;
         controller = new StrategoController();
         controller.setModelObserver(this);
         
@@ -203,7 +207,7 @@ public class StrategoView extends Application implements Observer{
                     pieceIndex = -1;
                 }
                     
-                PieceView square = new PieceView(pieceIndex, BOARD_GRID_COLOR, GRID_BORDERS);
+                PieceView square = new PieceView(controller, pieceIndex, BOARD_GRID_COLOR, GRID_BORDERS);
                 
                 // initializing square for no input
                 square.setDragEnabled(false);
@@ -215,12 +219,15 @@ public class StrategoView extends Application implements Observer{
                 board.add(square , col, row);
             }
         }
- 
+        
     }
     
     /**
      * <ul><b><i>initPieces</i></b></ul>
      * <ul><ul><p><code> private void initPieces () </code></p></ul>
+     *
+     * Initializes the "pieces box" portion of the UI to include the pieces and labels
+     * of quantity remaining.
      *
      * @author Kristopher Rangel
      */
@@ -257,11 +264,14 @@ public class StrategoView extends Application implements Observer{
 
                 pv.setLabelText(String.valueOf(count));
                 Label label = pv.getLabel();
+                
                 label.setAlignment(Pos.CENTER);
                 label.setMaxWidth(Double.MAX_VALUE);
                 label.setFont(new Font(COUNT_FONT_SIZE));
                 countLabels.add(label);
                 piecesBox.add(label, col, row + 1, 1 , 1);
+
+                
                 
                 pieceIndex++;
             }
@@ -276,15 +286,21 @@ public class StrategoView extends Application implements Observer{
     }
 
     
-    
-    
-   
-    public static int getLeft(int pieceIndex) {
-        Label l = countLabels.get(pieceIndex);
-        return Integer.valueOf(l.getText());
-    }
-    
-    
+    /**
+     * <ul><b><i>updateLabels</i></b></ul>
+     * <ul><ul><p><code>private static void updateLabels () </code></p></ul>
+     *
+     * Updates the appropriate "pieces box" labels to indicate the current number
+     * of that piece left to place on the board.
+     *
+     *<p>If the current number is zero, it also triggers a disable of the drag for the
+     *associated piece.</p>
+     *
+     * @param index - the piece index of the board
+     * @param change - the change requested (i.e. -1 for decrement or 1 for increment)
+     * 
+     * @author Kristopher Rangel
+     */
     public static void updateLabels(int index, int change) {
         Label l = countLabels.get(index);
         int count = Integer.valueOf(l.getText());
@@ -301,8 +317,12 @@ public class StrategoView extends Application implements Observer{
      * <ul><b><i>initTimer</i></b></ul>
      * <ul><ul><p><code>private void initTimer () </code></p></ul>
      *
-     * Initializes the timer UI element.
+     * Initializes the timer UI element and setup done button
+     * in the left panel of the display.
+     * 
+     * <p>The timer and button are only displayed during setup.
      *
+     * @author Kristopher Rangel
      */
     private void initTimer() {
         int row = PIECES_ROWS + 1;
@@ -322,17 +342,17 @@ public class StrategoView extends Application implements Observer{
         setupDone.autosize();
         setupDone.setAlignment(Pos.CENTER);
         setupDone.setOnAction(e -> { 
-            setupBoardEnable(false);
-            //TODO notify connection of setup completion
+
             //TODO let timer run until other player is done also
             timer.stopTimer(); 
+            endSetup();
             });
         piecesBox.add(setupDone, 0, row + 2, span, span);
     }
     
     /**
      * <ul><b><i>startTimer</i></b></ul>
-     * <ul><ul><p><code> void startTimer () </code></p></ul>
+     * <ul><ul><p><code>private void startTimer () </code></p></ul>
      *
      * Starts the timer.
      * 
@@ -385,7 +405,16 @@ public class StrategoView extends Application implements Observer{
             String server = newGameMenu.getServer();
             int port = newGameMenu.getPort();
             isServer = newGameMenu.getCreateModeSelection();
-
+            if(isServer) {
+                playerColor = Color.RED;
+                colorInt = 2;
+                setupStartRow = 6;
+            }else {
+                playerColor = Color.BLUE;
+                colorInt = 1;
+                setupStartRow = 0;
+            }
+            
             startNewGame(server, port);
         }
  
@@ -411,7 +440,12 @@ public class StrategoView extends Application implements Observer{
         //TODO setup network connection here
         
         startTimer();
-        setupBoardEnable(true);
+        setupEnabled = true;
+        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
+        setupArea.forEach( e -> {
+            PieceView pv = (PieceView) e;
+            pv.setDropEnabled(true);
+        } );
         
         //TODO finish start new game procedures
         
@@ -426,22 +460,59 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel
      */
     private void endSetup() {
-        setupBoardEnable(false);
+        setupEnabled = false;
+        
+        if(isServer) {
+
+            for(int row = setupStartRow; row < 10; row++) {
+                for(int col = 0; col < 10; col++) {
+                    PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
+                    pv.setDropEnabled(false);
+                    if(pv.getPieceType() != Piece.PieceType.EMPTY)
+                        controller.addToSetup(row - 6, col, pv.getPieceType(), colorInt);
+                }
+            }
+        }else {
+            //TODO need to translate to client positioning (possibly translate and use same loop above)            
+        }
+        
+        
+        // Requesting that controller update the model
+        controller.setBoard(colorInt);
+        
+        //TODO need to coordinate server/client setup completion before next
+        
+        // updating board following server/client sync
+        manualBoardUpdate();
         
         //TODO after setup stuff
     }
     
-    private void setupBoardEnable(boolean enableSetup) {
-        setupEnabled = enableSetup;
-        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
-        setupArea.forEach( e -> {
-            PieceView pv = (PieceView) e;
-            //TODO maybe disable drag on setup area
-            //pv.setDragEnabled(enableSetup);
-            pv.setDropEnabled(enableSetup);
-        } );
+    /**
+     * <ul><b><i>manualBoardUpdate</i></b></ul>
+     * <ul><ul><p><code>private void manualBoardUpdate () </code></p></ul>
+     *
+     * Does a sweep of the board ensuring the UI matches current board positioning.
+     * 
+     * <p> Intended to be invoked following the setup period after client/server
+     * syncronization.
+     * 
+     * @author Kristopher Rangel
+     *
+     */
+    private void manualBoardUpdate() {
+        for(int row = 0; row < 10; row++) {
+            for(int col = 0; col < 10; col++) {
+                Piece p = controller.getPosition(row, col);
+                PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
+                pv.update(p);
+                if(ENABLE_CONSOLE_DEBUG)
+                    System.out.printf("%d ", pv.convertPieceTypeToIndex(p.type));
+            }
+            if(ENABLE_CONSOLE_DEBUG)
+                System.out.printf(" End row: %d\n", row);
+        }
     }
-    
     
     /**
      * <ul><b><i>update</i></b></ul>
@@ -458,14 +529,10 @@ public class StrategoView extends Application implements Observer{
     public void update(Observable o, Object arg) {
        
             
+            System.out.println("notified");
             
             
-            
-            
-            
-            
-            
-            
+
   
     }
 }
