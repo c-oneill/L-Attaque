@@ -163,7 +163,7 @@ public class StrategoModel extends Observable
 		{
 			for (int col = 0; col < 10; col++)
 			{
-				Piece newPiece = new Piece(setupGrid[row][col]);
+				Piece newPiece = new Piece(setupGrid[row - startRow][col]);
 				newPiece.setColor(color);
 				grid[row][col] = newPiece;
 			}

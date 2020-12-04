@@ -118,7 +118,7 @@ public class Timer extends Thread {
                     time -= GRADIENT;
                     updateTime();
                 }
-            }catch (Exception e) { System.out.println("Timer stopped."); }
+            }catch (Exception e) { /*System.out.println("Timer stopped.");*/ }
         }
     }
     

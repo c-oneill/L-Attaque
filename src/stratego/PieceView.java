@@ -52,6 +52,8 @@ public class PieceView extends VBox {
     private int row;
     private int col;
     
+    //private StrategoController controller;
+    
     /**
      * Constructor.
      * 
@@ -63,7 +65,7 @@ public class PieceView extends VBox {
      * 
      * @author Kristopher Rangel
      */  
-    public PieceView (int pieceIndex, Color borderColor, int borderWidth) {
+    public PieceView (StrategoController controller, int pieceIndex, Color borderColor, int borderWidth) {
         super();
         this.row = -1; // 'null' value
         this.col = -1; // 'null' value
@@ -104,7 +106,7 @@ public class PieceView extends VBox {
      * @author Kristopher Rangel
      */
     public PieceView(int pieceIndex, Color borderColor) { 
-        this(pieceIndex, borderColor, 3);  // default border width is 3
+        this(null, pieceIndex, borderColor, 3);  // default border width is 3
     }
     
     /**
@@ -127,9 +129,9 @@ public class PieceView extends VBox {
      * <ul><b><i>setEvents</i></b></ul>
      * <ul><ul><p><code>private void setEvents () </code></p></ul>
      *
-     * This sets the events associated with this object.
+     * This sets the drag and drop events associated with this object.
      * 
-     * <p>The events are inherited from VBox.
+     * <p>The events are inherited from VBox. This function just specifies related actions.
      * 
      * @see VBox
      *
@@ -221,8 +223,10 @@ public class PieceView extends VBox {
                 String[] info = rawInfo.split(" ");
                 this.pieceIndex = Integer.parseInt(info[0]);
                 setBorderWidth(Integer.parseInt(info[2]));
-                setPieceType();
-                initBackground(pieceIndex);
+                
+                update();
+                //setPieceType();
+                //initBackground(pieceIndex);
                 
                 // getting whether the moved piece came from the board (true) or the pieces box (false)
                 boolean fromBoard = (info[3].substring(0, 4).equals("true"));
@@ -234,19 +238,25 @@ public class PieceView extends VBox {
                     
                     
                 }else { // Not from board (placed during setup)
+                   
+                    
                     if(oldPiece != pieceIndex){ // if pieced placed is not the same piece already there
                         StrategoView.updateLabels(pieceIndex, -1); // decrement count of new piece
                         
                         if(oldPiece >= 0) {  // If position on board was occupied by another piece
                             StrategoView.updateLabels(oldPiece, 1); // increment count of old piece
                         }
-                    } 
+                    }
+
+
                 }
                 
                 // Changing border color value (drag over exit event will actually set the border color)
                 this.borderColor = Color.web(info[1]);
 
                 success = true;
+                //int colorInt = (this.color == Color.BLUE) ? 0 : 1;
+                //controller.addToSetup(this.row, this.col, this.piece, colorInt); 
                 
                 if(StrategoView.ENABLE_CONSOLE_DEBUG) {
                     System.out.print("Drag ended on ");
@@ -463,6 +473,17 @@ public class PieceView extends VBox {
         System.out.printf("%s\n", pieces[pieceIndex + 2]);
     }
     
+    /**
+     * <ul><b><i>convertPieceIndexToType</i></b></ul>
+     * <ul><ul><p><code> PieceType convertPieceIndexToType (int pieceIndex) </code></p></ul>
+     *
+     *Converts a piece index number to the equivalent {@link PieceType}. 
+     *
+     * @param pieceIndex - the piece index integer value to covert
+     * @return the associated PieceType
+     * 
+     * @author Kristopher Rangel
+     */
     public static PieceType convertPieceIndexToType(int pieceIndex) {
         PieceType pieceType = null;
         switch(pieceIndex) {
@@ -510,5 +531,95 @@ public class PieceView extends VBox {
             break;
         }
         return pieceType;
+    }
+    
+    /**
+     * <ul><b><i>convertPieceTypeToIndex</i></b></ul>
+     * <ul><ul><p><code>public int convertPieceTypeToIndex (PieceType pieceType) </code></p></ul>
+     *
+     * Converts a {@link PieceType} to the equivalent piece index number.
+     *
+     * @param pieceType - the PieceType value to convert
+     * @return the associated piece index value
+     * 
+     * @author Kristopher Rangel
+     */
+    public int convertPieceTypeToIndex(PieceType pieceType) {
+        int pieceIndex = -1;
+        switch(pieceType) {
+        case LAKE:
+            pieceIndex = -2;
+            break;
+        case EMPTY:
+            pieceIndex = -1;
+            break;
+        case FLAG:
+            pieceIndex = 0;
+            break;
+        case BOMB:
+            pieceIndex = 1;
+            break;
+        case SPY:
+            pieceIndex = 2;
+            break;
+        case SCOUT:
+            pieceIndex = 3;
+            break;
+        case MINER:
+            pieceIndex = 4;
+            break;
+        case SERGEANT:
+            pieceIndex = 5;
+            break;
+        case LIEUTENANT:
+            pieceIndex = 6;
+            break;
+        case CAPTAIN:
+            pieceIndex = 7;
+            break;
+        case MAJOR:
+            pieceIndex = 8;
+            break;
+        case COLONEL:
+            pieceIndex = 9;
+            break;
+        case GENERAL:
+            pieceIndex = 10;
+            break;
+        case MARSHAL:
+            pieceIndex = 11;
+            break;
+        }
+        return pieceIndex;
+    }
+    
+    /**
+     * <ul><b><i>update</i></b></ul>
+     * <ul><ul><p><code>private void update () </code></p></ul>
+     *
+     * Updates the display to reflect the currently stored piece.
+     * 
+     * @author Kristopher Rangel
+     *
+     */
+    private void update() {
+        setPieceType();
+        initBackground(pieceIndex);
+    }
+    
+    /**
+     * <ul><b><i>update</i></b></ul>
+     * <ul><ul><p><code>private void update (Piece piece) </code></p></ul>
+     *
+     * Updates this PieceView object to store the given {@link Piece} and
+     * display the associate background image.
+     *
+     * @param piece - the <code>Piece</code> to update this PieceView with
+     * 
+     * @author Kristopher Rangel
+     */
+    public void update(Piece piece) {
+        this.piece = piece.type;
+        initBackground(convertPieceTypeToIndex(this.piece));
     }
 }
