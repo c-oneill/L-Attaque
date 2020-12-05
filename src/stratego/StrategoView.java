@@ -81,7 +81,7 @@ public class StrategoView extends Application implements Observer{
     private static ArrayList<PieceView> pieces; // pieces for setup
     public static boolean setupEnabled;
     private boolean inputEnabled;
-    private boolean isServer;
+    private static boolean isServer;
     
     /**
      * <ul><b><i>start</i></b></ul>
@@ -587,7 +587,7 @@ public class StrategoView extends Application implements Observer{
      * 
      * @author Kristopher Rangel
      */
-    private int translate(int rowOrColum) {
+    protected static int translate(int rowOrColum) {
         int result = rowOrColum;
         if(!isServer) { result = 9 - result; }
         return result;

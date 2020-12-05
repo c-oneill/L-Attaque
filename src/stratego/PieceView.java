@@ -231,14 +231,15 @@ public class PieceView extends VBox {
                 String rawInfo = db.getString();
                 String[] info = rawInfo.split(" ");
                 int newPieceIndex = Integer.parseInt(info[0]);
-                int fromRow = Integer.parseInt(info[1]);
-                int fromCol = Integer.parseInt(info[2]);
-                
+                int fromRow = StrategoView.translate(Integer.parseInt(info[1]));
+                int fromCol = StrategoView.translate(Integer.parseInt(info[2]));
+                int toRow = StrategoView.translate(row);
+                int toCol = StrategoView.translate(col);
                 // getting whether the moved piece came from the board (true) or the pieces box (false)
                 boolean fromBoard = (info[4].substring(0, 4).equals("true"));
                 if(fromBoard) {
-                    
-                    controller.movePiece(fromRow, fromCol, row, col);
+
+                    controller.movePiece(fromRow, fromCol, toRow, toCol);
                         
                     
                     
@@ -254,16 +255,12 @@ public class PieceView extends VBox {
                             StrategoView.updateLabels(oldPiece, 1); // increment count of old piece
                         }
                     }
-
-
-                }
-                if(moved) {
                     // Changing border color value (drag over exit event will actually set the border color)
                     this.borderColor = Color.web(info[3]);
 
+                }
+                if(moved) {
                     success = true;
-
-                
                 }
                 
                 if(StrategoView.ENABLE_CONSOLE_DEBUG) {
