@@ -238,10 +238,19 @@ public class PieceView extends VBox {
                 // getting whether the moved piece came from the board (true) or the pieces box (false)
                 boolean fromBoard = (info[4].substring(0, 4).equals("true"));
                 if(fromBoard) {
-
-                    controller.movePiece(fromRow, fromCol, toRow, toCol);
-                        
                     
+                    // requesting movement from controller
+                    moved = controller.movePiece(fromRow, fromCol, toRow, toCol);
+                    if(!moved) {
+                        
+                        System.out.println("Not moved (from controller)");
+                    }
+                    
+                    
+                    System.out.printf("From Piece index: %d ", newPieceIndex);
+                    testPrintPiece(newPieceIndex);
+                    System.out.printf("To Piece index: %d ", oldPiece);
+                    testPrintPiece(oldPiece);
                     
                     
                 }else { // Not from board (placed during setup)
@@ -268,7 +277,6 @@ public class PieceView extends VBox {
                     testPrintPiece();
                     System.out.printf("String: %s %s %s\n", info[0], info[1], info[2]);
                     System.out.printf("Dropped on row %d and col %d\n", row, col);
-                    //System.out.println(color.toString());
                 }
                 
             }
@@ -479,12 +487,13 @@ public class PieceView extends VBox {
      * @author Kristopher Rangel
      *
      */
-    private void testPrintPiece() {
+    private void testPrintPiece(int pieceIndex) {
                          //  -2      -1       0        1     2      3       4         5     6       7     8      9      10      11
         String[] pieces = {"Lake", "Land", "Flag", "Bomb", "Spy", "Scout", "Miner", "SGT", "LT", "CPT", "MAJ", "COL", "GEN", "Marshal"};
         System.out.printf("%s\n", pieces[pieceIndex + 2]);
     }
-    
+    private void testPrintPiece() { testPrintPiece(pieceIndex); }
+        
     /**
      * <ul><b><i>convertPieceIndexToType</i></b></ul>
      * <ul><ul><p><code> PieceType convertPieceIndexToType (int pieceIndex) </code></p></ul>
@@ -546,6 +555,7 @@ public class PieceView extends VBox {
      * @author Kristopher Rangel
      */
     public void update(Piece piece) {
+        this.pieceIndex = convertPieceTypeToIndex(piece.type);
         this.piece = piece.type;
         initBackground(convertPieceTypeToIndex(this.piece));
     }
