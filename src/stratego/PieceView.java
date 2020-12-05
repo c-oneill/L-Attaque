@@ -221,7 +221,7 @@ public class PieceView extends VBox {
         this.setOnDragDropped(e -> {
             Dragboard db = e.getDragboard();
             boolean success = false;
-            int oldPiece = pieceIndex; // saving previous piece
+            int toPieceIndex = pieceIndex; // saving previous piece
             if(db.hasString() && this.dropEnabled) {
                 
                 //TODO check with controller for valid position
@@ -230,7 +230,7 @@ public class PieceView extends VBox {
                 
                 String rawInfo = db.getString();
                 String[] info = rawInfo.split(" ");
-                int newPieceIndex = Integer.parseInt(info[0]);
+                int fromPieceIndex = Integer.parseInt(info[0]);
                 int fromRow = StrategoView.translate(Integer.parseInt(info[1]));
                 int fromCol = StrategoView.translate(Integer.parseInt(info[2]));
                 int toRow = StrategoView.translate(row);
@@ -247,21 +247,21 @@ public class PieceView extends VBox {
                     }
                     
                     
-                    System.out.printf("From Piece index: %d ", newPieceIndex);
-                    testPrintPiece(newPieceIndex);
-                    System.out.printf("To Piece index: %d ", oldPiece);
-                    testPrintPiece(oldPiece);
+                    System.out.printf("From Piece index: %d ", fromPieceIndex);
+                    testPrintPiece(fromPieceIndex);
+                    System.out.printf("To Piece index: %d ", toPieceIndex);
+                    testPrintPiece(toPieceIndex);
                     
                     
                 }else { // Not from board (placed during setup)
                     moved = true;
-                    this.pieceIndex = newPieceIndex;
+                    this.pieceIndex = fromPieceIndex;
                     update();
-                    if(oldPiece != pieceIndex){ // if pieced placed is not the same piece already there
+                    if(toPieceIndex != pieceIndex){ // if pieced placed is not the same piece already there
                         StrategoView.updateLabels(pieceIndex, -1); // decrement count of new piece
                         
-                        if(oldPiece >= 0) {  // If position on board was occupied by another piece
-                            StrategoView.updateLabels(oldPiece, 1); // increment count of old piece
+                        if(toPieceIndex >= 0) {  // If position on board was occupied by another piece
+                            StrategoView.updateLabels(toPieceIndex, 1); // increment count of old piece
                         }
                     }
                     // Changing border color value (drag over exit event will actually set the border color)
