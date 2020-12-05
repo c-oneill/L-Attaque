@@ -144,22 +144,81 @@ public class StrategoNetwork {
         return hasNoException;
     }
     
+
     /**
-     * <ul><b><i>writeMessage</i></b></ul>
-     * <ul><ul><p><code>public boolean writeMessage (String message) </code></p></ul>
+     * <ul><b><i>writeStartupMessage</i></b></ul>
+     * <ul><ul><p><code>public boolean writeStartupMessage (BoardSetupMessage message) </code></p></ul>
      *
-     * Writes a                  to the output buffer of this connection.
+     * Writes a {@link BoardSetupMessage} to the output buffer of this connection.
      *
      * <p>If an exception occurred while trying to establish the connection,
      * false is returned. In the event false is returned, 
      * the error message can be retrieved by invoking {@link #getErrorMessage()}.
      *
-     * @param message - the                  to transmit
+     * @param message - the {@link BoardSetupMessage} to transmit
      * @return true if no exception, false otherwise
      * 
      * @author Kristopher Rangel
      */
-    public boolean writeMessage(String message) { //TODO decide method of sending information (wrapper class?)
+    public boolean writeStartupMessage (BoardSetupMessage message) {
+        boolean hasNoException = true;
+        errorMessage = "No error occurred";
+        try {
+            output.writeObject(message);
+        }catch(IOException e) {
+            hasNoException = false;
+            errorMessage = "IOException occured while writing message.";
+        }
+        return hasNoException;
+    }
+
+    /**
+     * <ul><b><i>readStartupMessage</i></b></ul>
+     * <ul><ul><p><code>public BoardSetupMessage readMessage () </code></p></ul>
+     *
+     * Reads a {@link BoardSetupMessage} from the input buffer of this connection.
+     * 
+     * <p>If an exception occurred while trying to read the message, null will be returned.
+     * In that event, the error message can be retrieved by invoking {@link #getErrorMessage()}.
+     *
+     * @return - the read {@link BoardSetupMessage} object
+     * 
+     * @author Kristopher Rangel
+     * @author Caroline O'Neill
+     */
+    public BoardSetupMessage readStartupMessage() {
+        BoardSetupMessage message = null;
+        errorMessage = "No error occurred.";
+        try {
+            message = (BoardSetupMessage) input.readObject();
+            errorMessage = "No error message.";
+        } catch(SocketException | EOFException e) {
+            errorMessage = "Connection Closed.";
+            closeConnection();
+        }catch(IOException e) {
+            errorMessage = "IOException occured while trying to read message.";
+        }catch(ClassNotFoundException e) {
+            errorMessage = "ClassNotFoundException occured while trying to read message.";
+        }
+        return message;
+    }
+    
+    /**
+     * <ul><b><i>writeMessage</i></b></ul>
+     * <ul><ul><p><code>public boolean writeMessage (SinglePositionMessage message) </code></p></ul>
+     *
+     * Writes a {@link SinglePositionMessage} to the output buffer of this connection.
+     *
+     * <p>If an exception occurred while trying to establish the connection,
+     * false is returned. In the event false is returned, 
+     * the error message can be retrieved by invoking {@link #getErrorMessage()}.
+     *
+     * @param message - the {@link SinglePositionMessage} to transmit
+     * @return true if no exception, false otherwise
+     * 
+     * @author Kristopher Rangel
+     */
+    public boolean writeMessage(SinglePositionMessage message) {
         boolean hasNoException = true;
         errorMessage = "No error occurred";
         try {
@@ -173,23 +232,23 @@ public class StrategoNetwork {
     
     /**
      * <ul><b><i>readMessage</i></b></ul>
-     * <ul><ul><p><code>public Connect4MoveMessage readMessage () </code></p></ul>
+     * <ul><ul><p><code>public SinglePositionMessage readMessage () </code></p></ul>
      *
-     * Reads a                   from the input buffer of this connection.
+     * Reads a {@link SinglePositionMessage} from the input buffer of this connection.
      * 
      * <p>If an exception occurred while trying to read the message, null will be returned.
      * In that event, the error message can be retrieved by invoking {@link #getErrorMessage()}.
      *
-     * @return - 
+     * @return - the read {@link SinglePositionMessage} object
      * 
      * @author Kristopher Rangel
      * @author Caroline O'Neill
      */
-    public String readMessage() {
-        String message = null;   // need to decide how we are sending information (wrapper class?)
+    public SinglePositionMessage readMessage() {
+        SinglePositionMessage message = null;
         errorMessage = "No error occurred.";
         try {
-            message = (String) input.readObject(); // Change class here to match above
+            message = (SinglePositionMessage) input.readObject();
             errorMessage = "No error message.";
         } catch(SocketException | EOFException e) {
             errorMessage = "Connection Closed.";
