@@ -33,7 +33,10 @@ public class PieceView extends VBox {
     private final Color LAKE = Color.AQUA;
     private final Color LAND = Color.WHEAT;
     private final Color TRANSPARENT = Color.TRANSPARENT;
-    private final int SIZE = 70;
+    
+    //private final int SIZE = 70;
+    private final double SIZE = (StrategoView.STANDARD - 90/825D) * 70;
+    
     private final String[] RANK_IMAGES = {
             "ranks_flag.png","ranks_bomb.png", "ranks_1-spy.png", "ranks_2-scout.png",
             "ranks_3-Miner.png", "ranks_4-SGT.png", "ranks_5-LT.png", "ranks_6-CPT.png",
@@ -304,7 +307,7 @@ public class PieceView extends VBox {
         
         if(pieceIndex >= 0 && pieceIndex < RANK_IMAGES.length) {
             String imagePath = RANK_IMAGES[pieceIndex];
-            BackgroundImage bgi = new BackgroundImage(new Image(imagePath), 
+            BackgroundImage bgi = new BackgroundImage(new Image(imagePath, SIZE, SIZE, true, true), 
                     BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
             bg = new Background(bgi);
             
