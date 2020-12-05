@@ -226,25 +226,25 @@ public class PieceView extends VBox {
                 
                 //TODO check with controller for valid position
                 
+                boolean moved = false;
                 
                 String rawInfo = db.getString();
                 String[] info = rawInfo.split(" ");
                 int newPieceIndex = Integer.parseInt(info[0]);
-                //this.pieceIndex = Integer.parseInt(info[0]);
-                //setBorderWidth(Integer.parseInt(info[2]));
-                //update();
+                int fromRow = Integer.parseInt(info[1]);
+                int fromCol = Integer.parseInt(info[2]);
                 
                 // getting whether the moved piece came from the board (true) or the pieces box (false)
-                boolean fromBoard = (info[3].substring(0, 4).equals("true"));
+                boolean fromBoard = (info[4].substring(0, 4).equals("true"));
                 if(fromBoard) {
                     
-                    
+                    controller.movePiece(fromRow, fromCol, row, col);
                         
                     
                     
                     
                 }else { // Not from board (placed during setup)
-                   
+                    moved = true;
                     this.pieceIndex = newPieceIndex;
                     update();
                     if(oldPiece != pieceIndex){ // if pieced placed is not the same piece already there
@@ -257,13 +257,14 @@ public class PieceView extends VBox {
 
 
                 }
-                
-                // Changing border color value (drag over exit event will actually set the border color)
-                this.borderColor = Color.web(info[1]);
+                if(moved) {
+                    // Changing border color value (drag over exit event will actually set the border color)
+                    this.borderColor = Color.web(info[3]);
 
-                success = true;
-                //int colorInt = (this.color == Color.BLUE) ? 0 : 1;
-                //controller.addToSetup(this.row, this.col, this.piece, colorInt); 
+                    success = true;
+
+                
+                }
                 
                 if(StrategoView.ENABLE_CONSOLE_DEBUG) {
                     System.out.print("Drag ended on ");
@@ -457,14 +458,17 @@ public class PieceView extends VBox {
      * Converts this object into a string value representing the 
      * piece index, the border color, and the border width.
      *
-     * @return - the string represtation of this object
+     *<p>In the form: "pieceIndex row column borderColor isOnBoard"
+     *
+     * @return - the string representation of this object
      * 
      * @author Kristopher Rangel
      */
     public String toString() {
         String str = String.valueOf(pieceIndex) + " " 
-                   + String.valueOf(borderColor) + " " 
-                   + String.valueOf(borderWidth) + " "
+                   + String.valueOf(row) + " "
+                   + String.valueOf(col) + " "
+                   + String.valueOf(borderColor) + " "
                    + String.valueOf(isOnBoard);
         return str;
     }

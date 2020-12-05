@@ -491,6 +491,14 @@ public class StrategoView extends Application implements Observer{
         
     }
     
+    private void setBoardEnable() {
+        board.getChildren().iterator().forEachRemaining(e -> {
+            PieceView pv = (PieceView) e;
+            pv.setDropEnabled(true);
+            pv.setDragEnabled(true);
+        });
+    }
+    
     /**
      * <ul><b><i>endSetup</i></b></ul>
      * <ul><ul><p><code>private void endSetup () </code></p></ul>
@@ -598,6 +606,10 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel 
      */
     public void update(Observable o, Object arg) {
+        if(ENABLE_INPUT_DEBUG) {
+            setBoardEnable();    
+        }
+        
         if(setupEnabled) {
             setupEnabled = false;
             
@@ -607,7 +619,7 @@ public class StrategoView extends Application implements Observer{
             
         }else {
             // Everything else not dependent upon imediately following setup
-            
+            manualBoardUpdate();
         }
         
         
