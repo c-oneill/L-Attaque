@@ -42,7 +42,11 @@ public class PieceView extends VBox {
             "ranks_3-Miner.png", "ranks_4-SGT.png", "ranks_5-LT.png", "ranks_6-CPT.png",
             "ranks_7-MAJ.png", "ranks_8-COL.png", "ranks_9-GEN.png", "ranks_10-Marshall.png"
             };
-    
+    private static final PieceType[] PIECETYPES = { PieceType.LAKE, PieceType.EMPTY, PieceType.FLAG, 
+            PieceType.BOMB, PieceType.SPY, PieceType.SCOUT, PieceType.MINER, PieceType.SERGEANT, 
+            PieceType.LIEUTENANT, PieceType.CAPTAIN, PieceType.MAJOR, PieceType.COLONEL, 
+            PieceType.GENERAL, PieceType.MARSHAL};
+    private static final int PIECETYPE_OFFSET = 2; // the offset between the index of PieceType.LAKE and pieceIndex of lake 
     private Color color;
     private int pieceIndex;
     private Color borderColor;
@@ -55,7 +59,7 @@ public class PieceView extends VBox {
     private int row;
     private int col;
     
-    //private StrategoController controller;
+    private StrategoController controller;
     
     /**
      * Constructor.
@@ -81,7 +85,8 @@ public class PieceView extends VBox {
         dragEnabled = true;
         dropEnabled = true;
         
-        label = new Label();
+        this.controller = controller;
+        this.label = new Label();
         setPieceType();
         initBackground(pieceIndex);
         initBorder();
@@ -181,7 +186,7 @@ public class PieceView extends VBox {
         // Drag over entered event ( mouse is dragging over this)
         this.setOnDragEntered(e -> {
             if(dropEnabled) {
-                //TODO check for own pieces and not highlight
+                //TODO check for own pieces and not highlight if not during setup
                 //TODO check for invalid move square and not highlight
                 
                 
@@ -224,15 +229,15 @@ public class PieceView extends VBox {
                 
                 String rawInfo = db.getString();
                 String[] info = rawInfo.split(" ");
-                this.pieceIndex = Integer.parseInt(info[0]);
-                setBorderWidth(Integer.parseInt(info[2]));
-                
-                update();
+                int newPieceIndex = Integer.parseInt(info[0]);
+                //this.pieceIndex = Integer.parseInt(info[0]);
+                //setBorderWidth(Integer.parseInt(info[2]));
+                //update();
                 
                 // getting whether the moved piece came from the board (true) or the pieces box (false)
                 boolean fromBoard = (info[3].substring(0, 4).equals("true"));
                 if(fromBoard) {
-                    //System.out.println("From Board!");
+                    
                     
                         
                     
@@ -240,7 +245,8 @@ public class PieceView extends VBox {
                     
                 }else { // Not from board (placed during setup)
                    
-                    
+                    this.pieceIndex = newPieceIndex;
+                    update();
                     if(oldPiece != pieceIndex){ // if pieced placed is not the same piece already there
                         StrategoView.updateLabels(pieceIndex, -1); // decrement count of new piece
                         
@@ -484,58 +490,13 @@ public class PieceView extends VBox {
      *
      *Converts a piece index number to the equivalent {@link PieceType}. 
      *
-     * @param pieceIndex - the piece index integer value to covert
+     * @param pieceIndex - the piece index integer value to convert
      * @return the associated PieceType
      * 
      * @author Kristopher Rangel
      */
     public static PieceType convertPieceIndexToType(int pieceIndex) {
-        PieceType pieceType = null;
-        switch(pieceIndex) {
-        case -2:
-            pieceType = PieceType.LAKE;
-            break;
-        case -1:
-            pieceType = PieceType.EMPTY;
-            break;
-        case 0:
-            pieceType = PieceType.FLAG;
-            break;
-        case 1:
-            pieceType = PieceType.BOMB;
-            break;
-        case 2:
-            pieceType = PieceType.SPY;
-            break;
-        case 3:
-            pieceType = PieceType.SCOUT;
-            break;
-        case 4:
-            pieceType = PieceType.MINER;
-            break;
-        case 5:
-            pieceType = PieceType.SERGEANT;
-            break;
-        case 6:
-            pieceType = PieceType.LIEUTENANT;
-            break;
-        case 7:
-            pieceType = PieceType.CAPTAIN;
-            break;
-        case 8:
-            pieceType = PieceType.MAJOR;
-            break;
-        case 9:
-            pieceType = PieceType.COLONEL;
-            break;
-        case 10:
-            pieceType = PieceType.GENERAL;
-            break;
-        case 11:
-            pieceType = PieceType.MARSHAL;
-            break;
-        }
-        return pieceType;
+        return PIECETYPES[pieceIndex + PIECETYPE_OFFSET];
     }
     
     /**
@@ -550,52 +511,12 @@ public class PieceView extends VBox {
      * @author Kristopher Rangel
      */
     public int convertPieceTypeToIndex(PieceType pieceType) {
-        int pieceIndex = -1;
-        switch(pieceType) {
-        case LAKE:
-            pieceIndex = -2;
-            break;
-        case EMPTY:
-            pieceIndex = -1;
-            break;
-        case FLAG:
-            pieceIndex = 0;
-            break;
-        case BOMB:
-            pieceIndex = 1;
-            break;
-        case SPY:
-            pieceIndex = 2;
-            break;
-        case SCOUT:
-            pieceIndex = 3;
-            break;
-        case MINER:
-            pieceIndex = 4;
-            break;
-        case SERGEANT:
-            pieceIndex = 5;
-            break;
-        case LIEUTENANT:
-            pieceIndex = 6;
-            break;
-        case CAPTAIN:
-            pieceIndex = 7;
-            break;
-        case MAJOR:
-            pieceIndex = 8;
-            break;
-        case COLONEL:
-            pieceIndex = 9;
-            break;
-        case GENERAL:
-            pieceIndex = 10;
-            break;
-        case MARSHAL:
-            pieceIndex = 11;
-            break;
+        int i = 0;
+        for(; i < PIECETYPES.length; i++) {
+            if(pieceType == PIECETYPES[i])
+                break;
         }
-        return pieceIndex;
+        return i - PIECETYPE_OFFSET;
     }
     
     /**

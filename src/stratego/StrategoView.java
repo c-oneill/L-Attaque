@@ -31,23 +31,16 @@ import javafx.beans.InvalidationListener;
 
 public class StrategoView extends Application implements Observer{
 
+    protected static final boolean ENABLE_INPUT_DEBUG = true;
     protected static final boolean ENABLE_CONSOLE_DEBUG = false;
     
-//    private final int VGAP_PADDING = 8;
-//    private final int HGAP_PADDING = 8;
-//    private final int INSETS_PADDING = 4;
     private final Color BACKGROUND_COLOR = Color.WHITE;
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
     private final int SETUP_START_ROW = 6;
     private final int SETUP_INDEX_START = 60;
     private final int SETUP_INDEX_END = 100;
-    
-//    private final int GRID_BORDERS = 3;
-//    private final int WINDOW_HEIGHT = 825;
-//    private final int WINDOW_WIDTH = 1100;
-//    private final int CHATBOX_WIDTH = 300;
-    
+
     public static double STANDARD;
     
     private double WINDOW_HEIGHT;
@@ -115,7 +108,7 @@ public class StrategoView extends Application implements Observer{
             stage.setHeight(WINDOW_HEIGHT);
             stage.setWidth(WINDOW_WIDTH);
             stage.setTitle("Stratego");
-            stage.setResizable(false);
+            stage.setResizable(true);
             stage.setScene(scene);
             stage.show();
             this.stage = stage;
@@ -454,11 +447,9 @@ public class StrategoView extends Application implements Observer{
             if(isServer) {
                 playerColor = Color.RED;
                 colorInt = 2;
-                //setupStartRow = 6;
             }else {
                 playerColor = Color.BLUE;
                 colorInt = 1;
-                //setupStartRow = 0;
             }
             
             startNewGame(server, port);
