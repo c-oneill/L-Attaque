@@ -37,6 +37,7 @@ public class StrategoView extends Application implements Observer{
     private final Color BACKGROUND_COLOR = Color.WHITE;
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
+    private final int SETUP_START_ROW = 6;
     private final int SETUP_INDEX_START = 60;
     private final int SETUP_INDEX_END = 100;
     private final int GRID_BORDERS = 3;
@@ -62,7 +63,6 @@ public class StrategoView extends Application implements Observer{
     
     private Color playerColor;
     private int colorInt;
-    private int setupStartRow;
     
     private static ArrayList<Label> countLabels;
     private static ArrayList<PieceView> pieces; // pieces for setup
@@ -414,11 +414,11 @@ public class StrategoView extends Application implements Observer{
             if(isServer) {
                 playerColor = Color.RED;
                 colorInt = 2;
-                setupStartRow = 6;
+                //setupStartRow = 6;
             }else {
                 playerColor = Color.BLUE;
                 colorInt = 1;
-                setupStartRow = 0;
+                //setupStartRow = 0;
             }
             
             startNewGame(server, port);
@@ -469,21 +469,24 @@ public class StrategoView extends Application implements Observer{
      * @author Kristopher Rangel
      */
     private void endSetup() {
-        
-        if(isServer) {
-
-            for(int row = setupStartRow; row < 10; row++) {
-                for(int col = 0; col < 10; col++) {
-                    PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
-                    pv.setDropEnabled(false);
-                    if(pv.getPieceType() != Piece.PieceType.EMPTY)
-                        controller.addToSetup(row - 6, col, pv.getPieceType(), colorInt);
+        int setupRow;
+        int setupCol;
+        for(int row = SETUP_START_ROW; row < 10; row++) {
+            for(int col = 0; col < 10; col++) {
+                PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
+                pv.setDropEnabled(false);
+                if(pv.getPieceType() != Piece.PieceType.EMPTY) {
+                    setupRow = row - 6;
+                    setupCol = translate(col);
+                    if(!isServer) { // is client 
+                        // translating setup row to controller setup orientation (different from normal board translation)
+                        setupRow = 3 - setupRow;
+                    }
+                    controller.addToSetup(setupRow, setupCol, pv.getPieceType(), colorInt);
                 }
+                    
             }
-        }else {
-            //TODO need to translate to client positioning (possibly translate and use same loop above)            
         }
-        
         
         // Requesting that controller update the model (this will trigger an update() to the StrategoView)
         controller.setBoard(colorInt);
@@ -514,7 +517,9 @@ public class StrategoView extends Application implements Observer{
         for(int row = 0; row < 10; row++) {
             for(int col = 0; col < 10; col++) {
                 Piece p = controller.getPosition(row, col);
-                PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
+                int posRow = translate(row);
+                int posCol = translate(col);
+                PieceView pv = (PieceView) board.getChildren().get(posRow * 10 + posCol);
                 pv.update(p);
                 
                 // setting border color (no piece is black, else colored by piece color)
@@ -524,12 +529,29 @@ public class StrategoView extends Application implements Observer{
                 pv.setBorderColor(c);
                 pv.saveBorderColor(c);
                 
-                if(ENABLE_CONSOLE_DEBUG)
-                    System.out.printf("%d ", pv.convertPieceTypeToIndex(p.type));
+                if(ENABLE_CONSOLE_DEBUG) { System.out.printf("%d ", pv.convertPieceTypeToIndex(p.type)); }
             }
-            if(ENABLE_CONSOLE_DEBUG)
-                System.out.printf(" End row: %d\n", row);
+            if(ENABLE_CONSOLE_DEBUG) { System.out.printf(" End row: %d\n", row); }
         }
+    }
+    
+    /**
+     * <ul><b><i>translate</i></b></ul>
+     * <ul><ul><p><code> int translate () </code></p></ul>
+     *
+     * Translates rows or columns from the {@link StrategoModel} into
+     * rows or columns for display on the client. A server uses the same
+     * orientation as the model by default.
+     *
+     * @param rowOrColum - the integer row or column to translate
+     * @return the translated row or column
+     * 
+     * @author Kristopher Rangel
+     */
+    private int translate(int rowOrColum) {
+        int result = rowOrColum;
+        if(!isServer) { result = 9 - result; }
+        return result;
     }
     
     /**
@@ -547,19 +569,18 @@ public class StrategoView extends Application implements Observer{
     public void update(Observable o, Object arg) {
         if(setupEnabled) {
             setupEnabled = false;
-            System.out.println("setup disabled");
+            
             //TODO anything that needs to be done once, following setup
+            
+            if(ENABLE_CONSOLE_DEBUG) { System.out.println("setup disabled"); }
+            
         }else {
             // Everything else not dependent upon imediately following setup
             
         }
         
         
-        if(ENABLE_CONSOLE_DEBUG) {
-            System.out.println("notified");
-        }
+        if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
 
-
-  
     }
 }
