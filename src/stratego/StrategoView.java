@@ -8,12 +8,14 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.text.Font;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.beans.InvalidationListener;
 
@@ -31,19 +33,37 @@ public class StrategoView extends Application implements Observer{
 
     protected static final boolean ENABLE_CONSOLE_DEBUG = false;
     
-    private final int VGAP_PADDING = 8;
-    private final int HGAP_PADDING = 8;
-    private final int INSETS_PADDING = 4;
+//    private final int VGAP_PADDING = 8;
+//    private final int HGAP_PADDING = 8;
+//    private final int INSETS_PADDING = 4;
     private final Color BACKGROUND_COLOR = Color.WHITE;
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
     private final int SETUP_START_ROW = 6;
     private final int SETUP_INDEX_START = 60;
     private final int SETUP_INDEX_END = 100;
-    private final int GRID_BORDERS = 3;
-    private final int WINDOW_HEIGHT = 825;
-    private final int WINDOW_WIDTH = 1100;
-    private final int CHATBOX_WIDTH = 300;
+    
+//    private final int GRID_BORDERS = 3;
+//    private final int WINDOW_HEIGHT = 825;
+//    private final int WINDOW_WIDTH = 1100;
+//    private final int CHATBOX_WIDTH = 300;
+    
+    public static double STANDARD;
+    
+    private double WINDOW_HEIGHT;
+    private double WINDOW_WIDTH;
+    private double CHATBOX_WIDTH;
+    
+    private double VGAP_PADDING;
+    private double HGAP_PADDING;
+    private double INSETS_PADDING;
+    private int GRID_BORDERS;
+    
+    private double CLOCK_WIDTH;
+    private double CLOCK_HEIGHT;
+    private double SETUP_DONE_WIDTH;
+    private double TIMER_FONT_SIZE;
+    
     private final int PIECES_ROWS = 12;
     private final int PIECES_COLS = 2;
     private final int COUNT_FONT_SIZE = 14;
@@ -124,6 +144,26 @@ public class StrategoView extends Application implements Observer{
      *
      */
     public void init() {
+    	
+    	// adjust to native resolution
+        Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
+        double h = primScreenBounds.getHeight();
+        
+        STANDARD = h / 825;
+        
+        WINDOW_HEIGHT = STANDARD * 825;
+        WINDOW_WIDTH = STANDARD * 1100;
+        CHATBOX_WIDTH = STANDARD * 300;
+        
+        VGAP_PADDING = STANDARD * 8;
+        HGAP_PADDING = STANDARD * 8;
+        INSETS_PADDING = STANDARD * 4;
+        GRID_BORDERS = 3;
+        
+        CLOCK_WIDTH = STANDARD * 200;
+        CLOCK_HEIGHT = STANDARD * 200;
+        SETUP_DONE_WIDTH = STANDARD * 150;
+        TIMER_FONT_SIZE = STANDARD * 45;
         
         playerColor = Color.RED;
         controller = new StrategoController();
@@ -333,18 +373,18 @@ public class StrategoView extends Application implements Observer{
     private void initTimer() {
         int row = PIECES_ROWS + 1;
         int span = 2;
-        Font font = new Font(48);
+        Font font = new Font(TIMER_FONT_SIZE);
         clockFace = new Label("02:00");
         clockFace.setFont(font);
         clockFace.setAlignment(Pos.CENTER_RIGHT);
-        clockFace.prefWidth(200);
-        clockFace.prefHeight(200);
+        clockFace.prefWidth(CLOCK_WIDTH);
+        clockFace.prefHeight(CLOCK_HEIGHT);
         clockFace.setVisible(false);
         piecesBox.add(clockFace, 0, row, span, span);
         
         setupDone = new Button("Setup Done");
         setupDone.setVisible(false);
-        setupDone.setPrefWidth(150);
+        setupDone.setPrefWidth(SETUP_DONE_WIDTH);
         setupDone.autosize();
         setupDone.setAlignment(Pos.CENTER);
         setupDone.setOnAction(e -> { 
