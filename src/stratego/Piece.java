@@ -1,5 +1,7 @@
 package stratego;
 
+import java.io.Serializable;
+
 /**
  * Piece defines the piece types availible in Stratego. Playable and
  * non-playable types.
@@ -18,8 +20,11 @@ package stratego;
  * @author Caroline O'Neill
  *
  */
-public class Piece 
+public class Piece implements Serializable
 {
+
+	private static final long serialVersionUID = 1L;
+	
 	public static final int NONE = 0; // neither player
 	public static final int BLUE = 1; // top/client
 	public static final int RED = 2; // bottom/server

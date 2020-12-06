@@ -159,15 +159,37 @@ public class StrategoController
     	Thread recvSetupThread = new Thread(() -> 
     	{
     		SinglePositionMessage recvMsg1 = network.readMessage();
+    		System.out.println(network.getErrorMessage());
     		SinglePositionMessage recvMsg2 = network.readMessage();
+    		System.out.println(network.getErrorMessage());
     		SinglePositionMessage recvMsg3 = network.readMessage();
-        	
+    		System.out.println(network.getErrorMessage());
+    		
+    		System.out.println(recvMsg1);
+			System.out.println(recvMsg2);
+			System.out.println(recvMsg3);
+			
+    		final int row1 = recvMsg1.getRow();
+    		final int col1 = recvMsg1.getCol();
+    		final Piece piece1 = recvMsg1.getPiece();
+    		
+    		final int row2 = recvMsg2.getRow();
+    		final int col2 = recvMsg2.getCol();
+    		final Piece piece2 = recvMsg2.getPiece();
+    		
+    		final int row3 = recvMsg3.getRow();
+    		final int col3 = recvMsg3.getCol();
+    		final Piece piece3 = recvMsg3.getPiece();
+    		
     		Platform.runLater(() -> 
     		{
+    			System.out.println(recvMsg1);
+    			System.out.println(recvMsg2);
+    			System.out.println(recvMsg3);
     			// model/view update pushed until later in the main thread
-            	model.setPosition(recvMsg1.getRow(), recvMsg1.getCol(), recvMsg1.getPiece());
-            	model.setPosition(recvMsg2.getRow(), recvMsg2.getCol(), recvMsg2.getPiece());
-            	model.setPosition(recvMsg3.getRow(), recvMsg3.getCol(), recvMsg3.getPiece());
+            	model.setPosition(row1, col1, piece1);
+            	model.setPosition(row2, col2, piece2);
+            	model.setPosition(row3, col3, piece3);
     		});
     	});
     	recvSetupThread.start();

@@ -255,6 +255,7 @@ public class StrategoNetwork {
             closeConnection();
         }catch(IOException e) {
             errorMessage = "IOException occured while trying to read message.";
+            e.printStackTrace();
         }catch(ClassNotFoundException e) {
             errorMessage = "ClassNotFoundException occured while trying to read message.";
         }
