@@ -2,6 +2,7 @@ package stratego;
 
 import java.util.Observable;
 import java.util.Observer;
+
 import java.util.List;
 import java.util.ArrayList;
 import javafx.application.Application;
@@ -12,11 +13,13 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.text.Font;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import stratego.Piece.PieceType;
 import javafx.beans.InvalidationListener;
 
 /**
@@ -29,10 +32,10 @@ import javafx.beans.InvalidationListener;
  *
  */
 
-public class StrategoView extends Application implements Observer{
+public class StrategoView extends Application implements Observer {
 
     protected static final boolean ENABLE_INPUT_DEBUG = true;
-    protected static final boolean ENABLE_CONSOLE_DEBUG = false;
+    protected static final boolean ENABLE_CONSOLE_DEBUG = true;
     
     private final Color BACKGROUND_COLOR = Color.WHITE;
     private final Color BOARD_GRID_COLOR = Color.BLACK;
@@ -472,8 +475,27 @@ public class StrategoView extends Application implements Observer{
      */
     private void startNewGame(String server, int port) {
 
-        
-        
+    	controller.closeNetwork(); // if previous connection exists, close it
+        boolean hasConnectionError = controller.buildNetwork(isServer, server, port);
+        if(hasConnectionError) 
+        {
+        	showAlert(AlertType.ERROR, controller.getNetworkError());
+    	} 
+        else 
+    	{
+        	if(isServer) 
+        	{
+        		stage.setTitle("Stratego (Server)");
+        		inputEnabled = false;
+        		controller.initiateListening();
+        	} 
+        	else 
+        	{
+        		stage.setTitle("Stratego (Client)");
+        		inputEnabled = false;
+        		controller.initiateListening();
+        }
+    }
         //TODO setup network connection here
         
         startTimer();
@@ -489,6 +511,15 @@ public class StrategoView extends Application implements Observer{
         
         //TODO finish start new game procedures
         
+    }
+    
+    private void showAlert(AlertType type, String message) 
+    {
+        Alert alert = new Alert(type, message);
+        // setting alert location to match stage location
+        alert.setX(stage.getX());
+        alert.setY(stage.getY());
+        alert.showAndWait().filter(response -> response == ButtonType.OK);
     }
     
     private void setBoardEnable() {
@@ -521,6 +552,7 @@ public class StrategoView extends Application implements Observer{
                         // translating setup row to controller setup orientation (different from normal board translation)
                         setupRow = 3 - setupRow;
                     }
+                    System.out.println("ENDSETUP " + setupRow + " " + setupCol); // ---------------------------------------------------------------------
                     controller.addToSetup(setupRow, setupCol, pv.getPieceType(), colorInt);
                 }
                     
@@ -535,7 +567,7 @@ public class StrategoView extends Application implements Observer{
         //TODO need to coordinate server/client setup completion before next
         
         // updating board following server/client sync
-        manualBoardUpdate();
+        //manualBoardUpdate();
         
         //TODO after setup stuff
     }
@@ -572,6 +604,74 @@ public class StrategoView extends Application implements Observer{
             }
             if(ENABLE_CONSOLE_DEBUG) { System.out.printf(" End row: %d\n", row); }
         }
+    }
+    
+    /**
+     * Updates a single board position, accounting for coordinate translation
+     * between the model and client boards.
+     * @param modelRow row value in the model
+     * @param modelCol column value in the model
+     * @param p updated {@link Piece}
+     * 
+     * @author Caroline O'Neill
+     */
+    private void updatePosition(int modelRow, int modelCol, Piece p)
+    {
+    	int posRow = translate(modelRow);
+        int posCol = translate(modelCol);
+        PieceView pv = (PieceView) board.getChildren().get(posRow * 10 + posCol);
+        pv.update(p);
+        
+        // setting border color (no piece is black, else colored by piece color)
+        Color c = Color.BLACK;
+        if(p.color() == 1) { c = Color.BLUE; }
+        else if (p.color() == 2) { c = Color.RED; } 
+        pv.setBorderColor(c);
+        pv.saveBorderColor(c);
+    }
+    
+    /**
+     * Updates board setup, accounting for translating between model and client
+     * boards. Does not sweep the entire board, just the area of the initial
+     * setup.
+     * @param color server or client
+     * @param initialSetup initial setup
+     * 
+     * @author Caroline O'Neill
+     */
+    private void updateBoardSetup(int color, PieceType[][] initialSetup)
+    {
+    	int modelStartRow = 0;
+		if (color == Piece.RED)
+			modelStartRow = 6;
+		
+		for (int row = 0; row < 4; row++)
+		{
+			for (int col = 0; col < 10; col++)
+			{
+				int r = translate(row + modelStartRow, color);
+				int c = translate(col, color);
+
+				Piece p = new Piece(initialSetup[row][col]);
+				p.setColor(color);
+				updatePosition(r, c, p);
+			}
+		}
+    }
+    
+    /**
+     * Similar to {@link StrategoView#translate(int)}, but uses color passed
+     * rather than the this player's {@value StrategoView#isServer} attribute.
+     * @param rowOrColumn value to translate
+     * @param color server or client
+     * @return translated value
+     */
+    protected static int translate(int rowOrColumn, int color) 
+    {
+        int result = rowOrColumn;
+        if(color == Piece.BLUE) // if for client
+        	result = 9 - result;
+        return result;
     }
     
     /**
@@ -615,10 +715,20 @@ public class StrategoView extends Application implements Observer{
             
             //TODO anything that needs to be done once, following setup
             
+            // accepts this player's and other player's board setup
+            if (arg instanceof BoardSetupMessage)
+            {
+            	PieceType[][] initialSetup = ((BoardSetupMessage) arg).getInitialSetup();
+            	int color = ((BoardSetupMessage) arg).getColor();
+            	
+            	updateBoardSetup(color, initialSetup);
+            }
+            
             if(ENABLE_CONSOLE_DEBUG) { System.out.println("setup disabled"); }
             
-        }else {
+        } else {
             // Everything else not dependent upon imediately following setup
+        	System.out.println("manual board update");
             manualBoardUpdate();
         }
         

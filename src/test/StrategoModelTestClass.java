@@ -23,10 +23,10 @@ import stratego.StrategoModel;
 			PieceType[][] grid = new PieceType[10][10];
 			Piece redPiece = new Piece(PieceType.GENERAL);
 			redPiece.setColor(Piece.RED);
-			model.setBoard(grid, redPiece.color());
+			model.setBoard(grid, redPiece.color(), true);
 			Piece emptyPiece = new Piece(PieceType.EMPTY);
 			emptyPiece.setColor(Piece.NONE);
-			model.setBoard(grid, emptyPiece.color());
+			model.setBoard(grid, emptyPiece.color(), false);
 		}
 		@Test
 		public void positionTest() {

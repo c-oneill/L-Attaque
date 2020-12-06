@@ -161,8 +161,9 @@ public class StrategoModel extends Observable
 	 * setup with a {@link BoardSetupMessage}.
 	 * @param setupGrid a 4 x 10 grid indicating the player setup
 	 * @param color player color
+	 * @param notify if true, notifies observers of setup
 	 */
-	public void setBoard(PieceType[][] setupGrid, int color)
+	public void setBoard(PieceType[][] setupGrid, int color, boolean notify)
 	{
 		int startRow = 0;
 		if (color == Piece.RED)
@@ -178,11 +179,15 @@ public class StrategoModel extends Observable
 			}
 		}
 		
-		// notify observers with BoardSetupMessage
-		BoardSetupMessage message = new BoardSetupMessage(color, setupGrid);
-		setChanged();
-		notifyObservers(message);
+		if (notify)
+		{
+			// notify observers with BoardSetupMessage
+			BoardSetupMessage message = new BoardSetupMessage(color, setupGrid);
+			setChanged();
+			notifyObservers(message);
+		}
 	}
+
 	
 	/**
 	 * Gets the HashMap of red pieces still on the board.

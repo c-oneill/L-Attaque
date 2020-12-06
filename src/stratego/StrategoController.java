@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javafx.application.Platform;
 import javafx.scene.paint.Color;
 import stratego.Piece.PieceType;
 
@@ -30,6 +31,8 @@ public class StrategoController
 {
 	private StrategoModel model;
 	
+	private StrategoNetwork network;
+	
 	private PieceType[][] blueInitialSetup;
 	private PieceType[][] redInitialSetup;
 	private HashMap<PieceType, Integer> blueAvailible; // piece : count 
@@ -39,37 +42,118 @@ public class StrategoController
 	{
 		model = new StrategoModel();
 		
+		network = null;
+		
 		blueInitialSetup = new PieceType[4][10];
 		redInitialSetup = new PieceType[4][10];
 		
 		blueAvailible = new HashMap<PieceType, Integer>();
-		blueAvailible.put(PieceType.MARSHAL, 1);
-		blueAvailible.put(PieceType.GENERAL, 1);
-		blueAvailible.put(PieceType.COLONEL, 2);
-		blueAvailible.put(PieceType.MAJOR, 3);
-		blueAvailible.put(PieceType.CAPTAIN, 4);
-		blueAvailible.put(PieceType.LIEUTENANT, 4);
-		blueAvailible.put(PieceType.SERGEANT, 4);
-		blueAvailible.put(PieceType.MINER, 5);
-		blueAvailible.put(PieceType.SCOUT, 8);
-		blueAvailible.put(PieceType.BOMB, 6);
-		blueAvailible.put(PieceType.SPY, 1);
-		blueAvailible.put(PieceType.FLAG, 1);
-		
 		redAvailible = new HashMap<PieceType, Integer>();
-		redAvailible.put(PieceType.MARSHAL, 1);
-		redAvailible.put(PieceType.GENERAL, 1);
-		redAvailible.put(PieceType.COLONEL, 2);
-		redAvailible.put(PieceType.MAJOR, 3);
-		redAvailible.put(PieceType.CAPTAIN, 4);
-		redAvailible.put(PieceType.LIEUTENANT, 4);
-		redAvailible.put(PieceType.SERGEANT, 4);
-		redAvailible.put(PieceType.MINER, 5);
-		redAvailible.put(PieceType.SCOUT, 8);
-		redAvailible.put(PieceType.BOMB, 6);
-		redAvailible.put(PieceType.SPY, 1);
-		redAvailible.put(PieceType.FLAG, 1);
+		
+		resetAvailible(Piece.BLUE);
+		resetAvailible(Piece.RED);
 	}
+	private void resetAvailible(int color)
+	{
+		if (color == Piece.BLUE) 
+		{
+			blueAvailible.put(PieceType.MARSHAL, 1);
+			blueAvailible.put(PieceType.GENERAL, 1);
+			blueAvailible.put(PieceType.COLONEL, 2);
+			blueAvailible.put(PieceType.MAJOR, 3);
+			blueAvailible.put(PieceType.CAPTAIN, 4);
+			blueAvailible.put(PieceType.LIEUTENANT, 4);
+			blueAvailible.put(PieceType.SERGEANT, 4);
+			blueAvailible.put(PieceType.MINER, 5);
+			blueAvailible.put(PieceType.SCOUT, 8);
+			blueAvailible.put(PieceType.BOMB, 6);
+			blueAvailible.put(PieceType.SPY, 1);
+			blueAvailible.put(PieceType.FLAG, 1);
+		}
+		else if (color == Piece.RED) 
+		{
+			redAvailible.put(PieceType.MARSHAL, 1);
+			redAvailible.put(PieceType.GENERAL, 1);
+			redAvailible.put(PieceType.COLONEL, 2);
+			redAvailible.put(PieceType.MAJOR, 3);
+			redAvailible.put(PieceType.CAPTAIN, 4);
+			redAvailible.put(PieceType.LIEUTENANT, 4);
+			redAvailible.put(PieceType.SERGEANT, 4);
+			redAvailible.put(PieceType.MINER, 5);
+			redAvailible.put(PieceType.SCOUT, 8);
+			redAvailible.put(PieceType.BOMB, 6);
+			redAvailible.put(PieceType.SPY, 1);
+			redAvailible.put(PieceType.FLAG, 1);
+		}
+	}
+	
+	/**
+     * Build a client/server connection as a {@link StrategoNetwork}.
+     * @param isServer is this instance a server
+     * @param server the server to connect to (if it's a client)
+     * @param port the port to connect to
+     * @return start error
+     */
+	public boolean buildNetwork(boolean isServer, String server, int port)
+    {
+    	network = new StrategoNetwork(isServer, server, port);
+    	return network.getStartError();
+    }
+	
+	/**
+     * Gets the error message associated with starting up the network.
+     * @return error message
+     */
+    public String getNetworkError()
+    {   String errorMessage = "No network established.";
+        if(network != null)
+            errorMessage =  network.getErrorMessage();
+        return errorMessage;
+    }
+    
+    
+    /**
+     * Closes the network connection.
+     * @return true if there was no error closing connection, false otherwise
+     */
+    public boolean closeNetwork()
+    {   boolean result = false;
+        if(network != null)
+            result = network.closeConnection();
+    	return result;
+    }
+    
+    /**
+     * Prepares client to recieve other Player's first message (board setup),
+     * then passes off responsibility to the 
+     * {@link StrategoController#setBoard(int)} method.
+     */
+    public void initiateListening()
+    {
+    	Thread recvSetupThread = new Thread(() -> 
+    	{
+    		BoardSetupMessage recvMessage = network.readStartupMessage();
+    		System.out.println(recvMessage);
+    		
+    		PieceType[][] otherInitialSetup =  recvMessage.getInitialSetup();
+        	int color = recvMessage.getColor();
+        	
+        	for (int row = 0; row < 4; row++)
+    			for (int col = 0; col < 10; col++)
+    				addToSetup(row, col, otherInitialSetup[row][col], color);
+        	
+    		Platform.runLater(() -> 
+    		{
+    			// model/view update pushed until later in the main thread
+            	setOtherPlayerBoard(color);
+    			//setBoard(color);
+    		});
+    	});
+    	recvSetupThread.start();
+    		
+
+    }
+	
 	/**
 	 * Moves a piece from current position to a new specified position. Piece is
 	 * only moved if the move follows in-game logic. If an opponent piece
@@ -213,16 +297,38 @@ public class StrategoController
 	}
 	
 	/**
-	 * Takes an initial setup grid and fills in the board.
+	 * Takes an initial setup grid and fills in the board. Notifies Observers.
 	 * @param color color to setup
 	 */
 	public void setBoard(int color)
 	{
+		PieceType[][] initialSetup = null;
 		fillRemaining(color);
 		if (color == Piece.BLUE)
-			model.setBoard(blueInitialSetup, color);
+			initialSetup = blueInitialSetup;
 		else if (color == Piece.RED)
-			model.setBoard(redInitialSetup, color);
+			initialSetup = redInitialSetup;
+			
+		model.setBoard(initialSetup, color, true);
+		
+		BoardSetupMessage setupMessage = new BoardSetupMessage(color, initialSetup);
+		network.writeStartupMessage(setupMessage);
+	}
+	
+	/**
+	 * Takes an initial setup grid and fills in the board. Does not notify
+	 * observers.
+	 * @param color color to setup
+	 */
+	public void setOtherPlayerBoard(int color)
+	{
+		PieceType[][] initialSetup = null;
+		if (color == Piece.BLUE)
+			initialSetup = blueInitialSetup;
+		else if (color == Piece.RED)
+			initialSetup = redInitialSetup;
+			
+		model.setBoard(initialSetup, color, true);
 	}
 	
 	/**
@@ -276,6 +382,8 @@ public class StrategoController
 				}
 			}
 		}
+		// reset availible
+		resetAvailible(color);
 	}
 	
 	/**
