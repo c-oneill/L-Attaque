@@ -133,7 +133,6 @@ public class StrategoController
     	Thread recvSetupThread = new Thread(() -> 
     	{
     		BoardSetupMessage recvMessage = network.readStartupMessage();
-    		System.out.println(recvMessage);
     		
     		PieceType[][] otherInitialSetup =  recvMessage.getInitialSetup();
         	int color = recvMessage.getColor();
@@ -146,7 +145,6 @@ public class StrategoController
     		{
     			// model/view update pushed until later in the main thread
             	setOtherPlayerBoard(color);
-    			//setBoard(color);
     		});
     	});
     	recvSetupThread.start();

@@ -24,12 +24,6 @@ public class StrategoModel extends Observable
 	private HashMap<PieceType, Integer> bluePieces; // piece : count 
 	private HashMap<PieceType, Integer> redPieces; // piece :  count
 	
-	public static void main(String[] args) 
-	{
-		StrategoModel model = new StrategoModel();
-		model.printGrid();
-	}
-	
 	/**
 	 * StrategoModel constructor. Sets an empty board and initializes the
 	 * maps of all pieces on the board.

@@ -466,37 +466,33 @@ public class StrategoView extends Application implements Observer {
      *
      * This function starts a new game with the options selected by the user.
      *
-     *
-     *
      * @param server - the hostname of the server
      * @param port - the port number
      *
      * @author Kristopher Rangel
+     * @author Caroline O'Neill
      */
-    private void startNewGame(String server, int port) {
-
-    	controller.closeNetwork(); // if previous connection exists, close it
+    private void startNewGame(String server, int port) 
+    {
+    	// if previous connection exists, close it
+    	controller.closeNetwork(); 
+    	//setup network connection
         boolean hasConnectionError = controller.buildNetwork(isServer, server, port);
+        
         if(hasConnectionError) 
         {
         	showAlert(AlertType.ERROR, controller.getNetworkError());
     	} 
         else 
     	{
-        	if(isServer) 
-        	{
+        	if (isServer) 
         		stage.setTitle("Stratego (Server)");
-        		inputEnabled = false;
-        		controller.initiateListening();
-        	} 
         	else 
-        	{
         		stage.setTitle("Stratego (Client)");
-        		inputEnabled = false;
-        		controller.initiateListening();
+        	
+        	inputEnabled = false;
+        	controller.initiateListening();
         }
-    }
-        //TODO setup network connection here
         
         startTimer();
         setupEnabled = true;
@@ -508,9 +504,15 @@ public class StrategoView extends Application implements Observer {
             PieceView pv = (PieceView) e;
             pv.setDropEnabled(true);
         } );
-        
-        //TODO finish start new game procedures
-        
+//        
+//        if (isServer)
+//        {
+//        	inputEnabled = true;
+//        }
+//        else // is Client
+//        {
+//        	inputEnabled = false;
+//        }
     }
     
     private void showAlert(AlertType type, String message) 
@@ -552,7 +554,6 @@ public class StrategoView extends Application implements Observer {
                         // translating setup row to controller setup orientation (different from normal board translation)
                         setupRow = 3 - setupRow;
                     }
-                    System.out.println("ENDSETUP " + setupRow + " " + setupCol); // ---------------------------------------------------------------------
                     controller.addToSetup(setupRow, setupCol, pv.getPieceType(), colorInt);
                 }
                     
