@@ -1,5 +1,6 @@
 package stratego;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -148,8 +149,28 @@ public class StrategoController
     		});
     	});
     	recvSetupThread.start();
-    		
-
+    }
+    
+    /**
+     * 
+     */
+    public void clientTurnListening()
+    {
+    	Thread recvSetupThread = new Thread(() -> 
+    	{
+    		SinglePositionMessage recvMsg1 = network.readMessage();
+    		SinglePositionMessage recvMsg2 = network.readMessage();
+    		SinglePositionMessage recvMsg3 = network.readMessage();
+        	
+    		Platform.runLater(() -> 
+    		{
+    			// model/view update pushed until later in the main thread
+            	model.setPosition(recvMsg1.getRow(), recvMsg1.getCol(), recvMsg1.getPiece());
+            	model.setPosition(recvMsg2.getRow(), recvMsg2.getCol(), recvMsg2.getPiece());
+            	model.setPosition(recvMsg3.getRow(), recvMsg3.getCol(), recvMsg3.getPiece());
+    		});
+    	});
+    	recvSetupThread.start();
     }
 	
 	/**
@@ -165,35 +186,54 @@ public class StrategoController
 	 */
 	public boolean movePiece(int srcRow, int srcCol, int dstRow, int dstCol)
 	{
+		System.out.println("MOVE PIECE");
 		Piece srcPiece = model.getPosition(srcRow, srcCol);
 		Piece dstPiece = model.getPosition(dstRow, dstCol);
 		int winner = Piece.whoWins(srcPiece, dstPiece);
 		
 		if (!Piece.isMoveValid(srcRow, srcCol, dstRow, dstCol, srcPiece.type) || winner == -1)
+		{
+			System.out.println("MOVE NOT VALID");
 			return false;
+		}
+			
 		
 		// does move skip over any other pieces/lakes (only applicable to scout)
 		if (srcPiece.type == PieceType.SCOUT && doesMoveJump(srcRow, srcCol, dstRow, dstCol))
+		{
+			System.out.println("SCOUT JUMPS - MOVE INVALID");
 			return false;
+		}
+			
 		
 		// move is valid (srcPiece is not empty or a lake)
 		model.removePosition(srcRow, srcCol);
 		model.setPosition(dstRow, dstCol, srcPiece);
+		
+		// 3 total messages sent
+		network.writeMessage(new SinglePositionMessage(srcRow, srcCol, new Piece(PieceType.EMPTY)));
+		network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece));
 		
 		if (winner == 0) // both removed
 		{
 			model.removePiece(srcPiece);
 			model.removePiece(dstPiece);
 			model.removePosition(dstRow, dstCol);
+			
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, new Piece(PieceType.EMPTY)));
 		}
 		else if (winner == 1) // attacker remains, defender removed
 		{
 			model.removePiece(dstPiece);
+			
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece));
 		}
 		else if (winner == 2) // defender remains, attacker removed
 		{
 			model.removePiece(srcPiece);
 			model.setPosition(dstRow, dstCol, dstPiece);
+			
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, dstPiece));
 		}
 		return true;
 	}
@@ -306,7 +346,7 @@ public class StrategoController
 			initialSetup = blueInitialSetup;
 		else if (color == Piece.RED)
 			initialSetup = redInitialSetup;
-			
+		
 		model.setBoard(initialSetup, color, true);
 		
 		BoardSetupMessage setupMessage = new BoardSetupMessage(color, initialSetup);

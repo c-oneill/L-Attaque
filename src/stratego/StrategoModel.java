@@ -172,7 +172,6 @@ public class StrategoModel extends Observable
 				grid[row][col] = newPiece;
 			}
 		}
-		
 		if (notify)
 		{
 			// notify observers with BoardSetupMessage

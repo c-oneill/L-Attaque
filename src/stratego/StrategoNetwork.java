@@ -191,7 +191,6 @@ public class StrategoNetwork {
         errorMessage = "No error occurred.";
         try {
             message = (BoardSetupMessage) input.readObject();
-            System.out.print(message); // -----------------------------------------------------
             errorMessage = "No error message.";
         } catch(SocketException | EOFException e) {
             errorMessage = "Connection Closed.";

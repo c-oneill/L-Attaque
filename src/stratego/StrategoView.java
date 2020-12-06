@@ -86,6 +86,9 @@ public class StrategoView extends Application implements Observer {
     private boolean inputEnabled;
     private static boolean isServer;
     
+    private boolean recvOtherSetup = false;
+    private boolean sentSetup = false;
+    
     /**
      * <ul><b><i>start</i></b></ul>
      * <ul><ul><p><code>public void start (Stage stage) </code></p></ul>
@@ -504,15 +507,6 @@ public class StrategoView extends Application implements Observer {
             PieceView pv = (PieceView) e;
             pv.setDropEnabled(true);
         } );
-//        
-//        if (isServer)
-//        {
-//        	inputEnabled = true;
-//        }
-//        else // is Client
-//        {
-//        	inputEnabled = false;
-//        }
     }
     
     private void showAlert(AlertType type, String message) 
@@ -529,6 +523,25 @@ public class StrategoView extends Application implements Observer {
             PieceView pv = (PieceView) e;
             pv.setDropEnabled(true);
             pv.setDragEnabled(true);
+        });
+    }
+    
+    private void setBoardDisable() {
+        board.getChildren().iterator().forEachRemaining(e -> {
+            PieceView pv = (PieceView) e;
+            pv.setDropEnabled(false);
+            pv.setDragEnabled(false);
+        });
+    }
+    
+    private void setPiecesBoxDisable() {
+        piecesBox.getChildren().iterator().forEachRemaining(e -> {
+        	if (e instanceof PieceView)
+        	{
+        		PieceView pv = (PieceView) e;
+        		pv.setDropEnabled(false);
+        		pv.setDragEnabled(false);
+        	}
         });
     }
     
@@ -559,16 +572,21 @@ public class StrategoView extends Application implements Observer {
                     
             }
         }
-        
-        // Requesting that controller update the model (this will trigger an update() to the StrategoView)
-        controller.setBoard(colorInt);
         // Zeroing out quantity labels in event controller auto-filled any of the board
         for(Label l : countLabels) { l.setText("0"); }
         
-        //TODO need to coordinate server/client setup completion before next
         
-        // updating board following server/client sync
-        //manualBoardUpdate();
+        // Requesting that controller update the model (this will trigger an update() to the StrategoView)
+        sentSetup = true;
+        controller.setBoard(colorInt);
+        
+        //TODO: disable Pieces box for client and server
+        //TODO: disable board for client and server
+        //TODO: disable setup done button
+        setBoardDisable();
+        setPiecesBoxDisable();
+                
+        //TODO need to coordinate server/client setup completion before next
         
         //TODO after setup stuff
     }
@@ -650,8 +668,8 @@ public class StrategoView extends Application implements Observer {
 		{
 			for (int col = 0; col < 10; col++)
 			{
-				int r = translate(row + modelStartRow, color);
-				int c = translate(col, color);
+				int r = row + modelStartRow;
+				int c = col;
 
 				Piece p = new Piece(initialSetup[row][col]);
 				p.setColor(color);
@@ -705,33 +723,54 @@ public class StrategoView extends Application implements Observer {
      * @param arg - a LINK_NEEDED with information related to the move
      * 
      * @author Kristopher Rangel 
+     * @author Caroline O'Neill
      */
     public void update(Observable o, Object arg) {
         if(ENABLE_INPUT_DEBUG) {
             setBoardEnable();    
         }
         
-        if(setupEnabled) {
-            setupEnabled = false;
-            
-            //TODO anything that needs to be done once, following setup
-            
-            // accepts this player's and other player's board setup
-            if (arg instanceof BoardSetupMessage)
-            {
-            	PieceType[][] initialSetup = ((BoardSetupMessage) arg).getInitialSetup();
-            	int color = ((BoardSetupMessage) arg).getColor();
+        if(arg instanceof BoardSetupMessage && setupEnabled) 
+        {
+            PieceType[][] initialSetup = ((BoardSetupMessage) arg).getInitialSetup();
+            int color = ((BoardSetupMessage) arg).getColor();
+            updateBoardSetup(color, initialSetup);
             	
-            	updateBoardSetup(color, initialSetup);
+            if (color != colorInt) // setup recieved
+            	recvOtherSetup = true;
+            
+            if (recvOtherSetup && sentSetup)
+            {
+            	// proceed to 'battle phase'
+            	//TODO: alert about battle beginning
+            	setupEnabled = false;
+            	if (isServer)
+            	{
+            		//TODO: enable server board
+            		setBoardEnable();
+            	}
+            	else // isClient
+            	{
+            		// Client board should already be disabled
+            		controller.clientTurnListening();
+            	}
             }
             
             if(ENABLE_CONSOLE_DEBUG) { System.out.println("setup disabled"); }
-            
-        } else {
-            // Everything else not dependent upon imediately following setup
-        	System.out.println("manual board update");
-            manualBoardUpdate();
+ 
+        } else if (arg instanceof SinglePositionMessage) {
+        	int row = ((SinglePositionMessage) arg).getRow();
+        	int col = ((SinglePositionMessage) arg).getCol();
+        	Piece p = ((SinglePositionMessage) arg).getPiece();
+        	
+        	System.out.println("UPDATE POSITION");
+        	updatePosition(row, col, p);
         }
+//        } else {
+//            // Everything else not dependent upon imediately following setup
+//        	System.out.println("manual board update");
+//            manualBoardUpdate();
+//        }
         
         
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }

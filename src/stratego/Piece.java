@@ -82,20 +82,32 @@ public class Piece
 	{
 		// can the piece move
 		if(!pieceType.moveable)
+		{
+			System.out.println("in not moveable");
 			return false;
-		
+		}
+			
 		// does the move remain on the board
 		if (dstCol >= StrategoModel.COLUMNS || dstRow >= StrategoModel.ROWS)
+		{
+			System.out.println("does not remain on the board");
 			return false;
+		}
 		
 		// does the move land in the lakes
 		if ((dstRow == 4 || dstRow == 5) && (dstCol == 2 || dstCol == 3 || dstCol == 6 || dstCol == 7))
+		{
+			System.out.println("goes into one of the lakes");
 			return false;
-		
+		}
+			
 		// moveable piece is not a Scout - should move one square at a time
-		if (pieceType != PieceType.SCOUT && (Math.abs(srcRow - dstRow) != 1 || Math.abs(srcCol - dstCol) != 1))
+		if (pieceType != PieceType.SCOUT && (Math.abs(srcRow - dstRow) > 1 || Math.abs(srcCol - dstCol) > 1))
+		{
+			System.out.println("moveable piece is not a Scout - should move one square at a time");
 			return false;
-		
+		}
+			
 		// no diagonal moves -> srcRow == row XOR srcCol == col
 		return srcRow == dstRow ^ srcCol == dstCol;
 	}
