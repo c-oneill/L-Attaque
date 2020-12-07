@@ -453,10 +453,10 @@ public class StrategoView extends Application implements Observer {
             isServer = newGameMenu.getCreateModeSelection();
             if(isServer) {
                 playerColor = Color.RED;
-                colorInt = 2;
+                colorInt = Piece.RED;
             }else {
                 playerColor = Color.BLUE;
-                colorInt = 1;
+                colorInt = Piece.BLUE;
             }
             
             startNewGame(server, port);
@@ -502,12 +502,18 @@ public class StrategoView extends Application implements Observer {
         setupEnabled = true;
         changePieceBoxColor(playerColor);
         
-        // Enabling drop on setup area of board
-        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
-        setupArea.forEach( e -> {
+//        // Enabling drop on setup area of board
+//        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
+//        setupArea.forEach( e -> {
+//            PieceView pv = (PieceView) e;
+//            pv.setDropEnabled(true);
+//        } );
+        
+        // Enabling drag on the entire board
+        board.getChildren().iterator().forEachRemaining(e -> {
             PieceView pv = (PieceView) e;
             pv.setDropEnabled(true);
-        } );
+        });
     }
     
     private void showAlert(AlertType type, String message) 
@@ -527,24 +533,24 @@ public class StrategoView extends Application implements Observer {
         });
     }
     
-    private void setBoardDisable() {
-        board.getChildren().iterator().forEachRemaining(e -> {
-            PieceView pv = (PieceView) e;
-            pv.setDropEnabled(false);
-            pv.setDragEnabled(false);
-        });
-    }
-    
-    private void setPiecesBoxDisable() {
-        piecesBox.getChildren().iterator().forEachRemaining(e -> {
-        	if (e instanceof PieceView)
-        	{
-        		PieceView pv = (PieceView) e;
-        		pv.setDropEnabled(false);
-        		pv.setDragEnabled(false);
-        	}
-        });
-    }
+//    private void setBoardDisable() {
+//        board.getChildren().iterator().forEachRemaining(e -> {
+//            PieceView pv = (PieceView) e;
+//            pv.setDropEnabled(false);
+//            pv.setDragEnabled(false);
+//        });
+//    }
+//    
+//    private void setPiecesBoxDisable() {
+//        piecesBox.getChildren().iterator().forEachRemaining(e -> {
+//        	if (e instanceof PieceView)
+//        	{
+//        		PieceView pv = (PieceView) e;
+//        		pv.setDropEnabled(false);
+//        		pv.setDragEnabled(false);
+//        	}
+//        });
+//    }
     
     /**
      * <ul><b><i>endSetup</i></b></ul>
@@ -560,7 +566,7 @@ public class StrategoView extends Application implements Observer {
         for(int row = SETUP_START_ROW; row < 10; row++) {
             for(int col = 0; col < 10; col++) {
                 PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
-                pv.setDropEnabled(false);
+                //pv.setDropEnabled(false); //----------------------------------------------------
                 if(pv.getPieceType() != Piece.PieceType.EMPTY) {
                     setupRow = row - 6;
                     setupCol = translate(col);
@@ -576,17 +582,21 @@ public class StrategoView extends Application implements Observer {
         // Zeroing out quantity labels in event controller auto-filled any of the board
         for(Label l : countLabels) { l.setText("0"); }
         
+        // disable Pieces box for client and server
+        // disable board for client and server
+        board.setDisable(true);
+        piecesBox.setDisable(true);
+        inputEnabled = false;
         
         // Requesting that controller update the model (this will trigger an update() to the StrategoView)
         sentSetup = true;
         controller.setBoard(colorInt);
         
-        // disable Pieces box for client and server
-        // disable board for client and server
-        //TODO: disable setup done button
-        setBoardDisable();
-        setPiecesBoxDisable();
-        inputEnabled = false;
+        
+        
+        //setBoardDisable(); -- remove?
+        //setPiecesBoxDisable(); -- remove?
+        
                 
         //TODO need to coordinate server/client setup completion before next
         
@@ -642,6 +652,27 @@ public class StrategoView extends Application implements Observer {
         int posCol = translate(modelCol);
         PieceView pv = (PieceView) board.getChildren().get(posRow * 10 + posCol);
         pv.update(p);
+        
+        // disallowing player to mover other player's pieces
+        if (p.color() != colorInt && p.color() != Piece.NONE)
+        {
+        	System.out.println("DRAG OTHER PLAYER == false; modelRow " + modelRow);
+        	System.out.println("colorInt " + colorInt);
+        	System.out.println("pieceColor " + p.color());
+        	pv.setDragEnabled(false);
+        }
+        else if (p.color() == colorInt)
+        {
+        	System.out.println("DRAG THIS PLAYER == true; modelRow " + modelRow);
+        	System.out.println("colorInt " + colorInt);
+        	System.out.println("pieceColor " + p.color());
+        	pv.setDragEnabled(true);
+        }
+        // all except Lakes should have drop enabled
+        if (p.type != PieceType.LAKE)
+        {
+        	pv.setDropEnabled(true);
+        }
         
         // setting border color (no piece is black, else colored by piece color)
         Color c = Color.BLACK;
@@ -733,9 +764,10 @@ public class StrategoView extends Application implements Observer {
         }
         
         System.out.println("MSGRECVCOUNT: " + msgRecvCount);
+        System.out.println("isServer: " + isServer);
         
         if(arg instanceof BoardSetupMessage && setupEnabled) 
-        {
+        {	
             PieceType[][] initialSetup = ((BoardSetupMessage) arg).getInitialSetup();
             int color = ((BoardSetupMessage) arg).getColor();
             updateBoardSetup(color, initialSetup);
@@ -753,14 +785,16 @@ public class StrategoView extends Application implements Observer {
             	if (isServer)
             	{
             		// enable server board
-            		setBoardEnable();
+            		//setBoardEnable(); //-- remove?
+            		board.setDisable(false);
             		inputEnabled = true;
             		System.out.println("iNPUT ENABLED3");
             	}
             	else // isClient
             	{
             		inputEnabled = false;
-            		setBoardDisable(); // should already be disabled?
+            		//setBoardDisable(); -- remove?
+            		board.setDisable(true); // should already be disabled?
             		controller.initiateTurnListening();
             	}
             }
@@ -797,13 +831,15 @@ public class StrategoView extends Application implements Observer {
         	if (inputEnabled == true)
         	{
         		System.out.println("DISABLE INPUT");
-        		setBoardDisable();
+        		//setBoardDisable(); -- remove?
+        		board.setDisable(true);
         		inputEnabled = false;
         		// initiateTurnListening is invoked in MovePiece
         	}
         	else
         	{
-        		setBoardEnable();
+        		//setBoardEnable(); -- remove?
+        		board.setDisable(false);
         		inputEnabled = true;
         	}
         }
