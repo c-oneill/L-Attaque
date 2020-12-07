@@ -129,7 +129,7 @@ public class StrategoController
      * then passes off responsibility to the 
      * {@link StrategoController#setBoard(int)} method.
      */
-    public void initiateListening()
+    public void initiateSetupListening()
     {
     	Thread recvSetupThread = new Thread(() -> 
     	{
@@ -154,7 +154,7 @@ public class StrategoController
     /**
      * 
      */
-    public void clientTurnListening()
+    public void initiateTurnListening()
     {
     	Thread recvSetupThread = new Thread(() -> 
     	{
@@ -219,7 +219,6 @@ public class StrategoController
 			return false;
 		}
 			
-		
 		// does move skip over any other pieces/lakes (only applicable to scout)
 		if (srcPiece.type == PieceType.SCOUT && doesMoveJump(srcRow, srcCol, dstRow, dstCol))
 		{
@@ -227,13 +226,14 @@ public class StrategoController
 			return false;
 		}
 			
-		
 		// move is valid (srcPiece is not empty or a lake)
 		model.removePosition(srcRow, srcCol);
 		model.setPosition(dstRow, dstCol, srcPiece);
 		
 		// 3 total messages sent
+		System.out.println("1st msg");
 		network.writeMessage(new SinglePositionMessage(srcRow, srcCol, new Piece(PieceType.EMPTY)));
+		System.out.println("2nd msg");
 		network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece));
 		
 		if (winner == 0) // both removed
@@ -243,12 +243,15 @@ public class StrategoController
 			model.removePosition(dstRow, dstCol);
 			
 			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, new Piece(PieceType.EMPTY)));
+			System.out.println("3rd msg a");
 		}
 		else if (winner == 1) // attacker remains, defender removed
 		{
 			model.removePiece(dstPiece);
+			model.setPosition(dstRow, dstCol, srcPiece); // unnecessary, but need consistent number of messages sent
 			
 			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece));
+			System.out.println("3rd msg b");
 		}
 		else if (winner == 2) // defender remains, attacker removed
 		{
@@ -256,7 +259,18 @@ public class StrategoController
 			model.setPosition(dstRow, dstCol, dstPiece);
 			
 			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, dstPiece));
+			System.out.println("3rd msg c");
 		}
+		else // winner == -1
+		{
+			// unnecessary, but need consistent number of messages sent
+			model.setPosition(srcRow, srcCol, srcPiece);
+			network.writeMessage(new SinglePositionMessage(srcRow, srcCol, srcPiece)); 
+			System.out.println("3rd msg d");
+		}
+		
+		initiateTurnListening();
+		
 		return true;
 	}
 	

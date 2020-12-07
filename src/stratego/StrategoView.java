@@ -34,8 +34,8 @@ import javafx.beans.InvalidationListener;
 
 public class StrategoView extends Application implements Observer {
 
-    protected static final boolean ENABLE_INPUT_DEBUG = true;
-    protected static final boolean ENABLE_CONSOLE_DEBUG = true;
+    protected static final boolean ENABLE_INPUT_DEBUG = false;
+    protected static final boolean ENABLE_CONSOLE_DEBUG = false;
     
     private final Color BACKGROUND_COLOR = Color.WHITE;
     private final Color BOARD_GRID_COLOR = Color.BLACK;
@@ -88,6 +88,7 @@ public class StrategoView extends Application implements Observer {
     
     private boolean recvOtherSetup = false;
     private boolean sentSetup = false;
+    private int msgRecvCount = 0;
     
     /**
      * <ul><b><i>start</i></b></ul>
@@ -108,7 +109,7 @@ public class StrategoView extends Application implements Observer {
         // Showing stage
         try {
             setupEnabled = false;
-            inputEnabled = false;
+            inputEnabled = true;
             
             // setting the stage
             stage.setHeight(WINDOW_HEIGHT);
@@ -493,8 +494,8 @@ public class StrategoView extends Application implements Observer {
         	else 
         		stage.setTitle("Stratego (Client)");
         	
-        	inputEnabled = false;
-        	controller.initiateListening();
+        	inputEnabled = true;
+        	controller.initiateSetupListening();
         }
         
         startTimer();
@@ -580,11 +581,12 @@ public class StrategoView extends Application implements Observer {
         sentSetup = true;
         controller.setBoard(colorInt);
         
-        //TODO: disable Pieces box for client and server
-        //TODO: disable board for client and server
+        // disable Pieces box for client and server
+        // disable board for client and server
         //TODO: disable setup done button
         setBoardDisable();
         setPiecesBoxDisable();
+        inputEnabled = false;
                 
         //TODO need to coordinate server/client setup completion before next
         
@@ -730,6 +732,8 @@ public class StrategoView extends Application implements Observer {
             setBoardEnable();    
         }
         
+        System.out.println("MSGRECVCOUNT: " + msgRecvCount);
+        
         if(arg instanceof BoardSetupMessage && setupEnabled) 
         {
             PieceType[][] initialSetup = ((BoardSetupMessage) arg).getInitialSetup();
@@ -739,6 +743,8 @@ public class StrategoView extends Application implements Observer {
             if (color != colorInt) // setup recieved
             	recvOtherSetup = true;
             
+            System.out.println(recvOtherSetup);
+            System.out.println(sentSetup);
             if (recvOtherSetup && sentSetup)
             {
             	// proceed to 'battle phase'
@@ -746,31 +752,61 @@ public class StrategoView extends Application implements Observer {
             	setupEnabled = false;
             	if (isServer)
             	{
-            		//TODO: enable server board
+            		// enable server board
             		setBoardEnable();
+            		inputEnabled = true;
+            		System.out.println("iNPUT ENABLED3");
             	}
             	else // isClient
             	{
-            		// Client board should already be disabled
-            		controller.clientTurnListening();
+            		inputEnabled = false;
+            		setBoardDisable(); // should already be disabled?
+            		controller.initiateTurnListening();
             	}
             }
             
             if(ENABLE_CONSOLE_DEBUG) { System.out.println("setup disabled"); }
  
-        } else if (arg instanceof SinglePositionMessage) {
+        } 
+        else if (arg instanceof SinglePositionMessage) 
+        {
+        	System.out.println("INPUT ENABLED1: " + inputEnabled);
         	int row = ((SinglePositionMessage) arg).getRow();
         	int col = ((SinglePositionMessage) arg).getCol();
         	Piece p = ((SinglePositionMessage) arg).getPiece();
         	
         	System.out.println("UPDATE POSITION");
         	updatePosition(row, col, p);
+        	
+        	msgRecvCount++;
         }
+
 //        } else {
 //            // Everything else not dependent upon imediately following setup
 //        	System.out.println("manual board update");
 //            manualBoardUpdate();
 //        }
+        
+        // switching player turns
+        if (msgRecvCount == 3)
+        {
+        	System.out.println("CHECKING MSGCOUNT");
+        	msgRecvCount = 0;
+        	// switch board enabled/disabled
+        	System.out.println("INPUT ENABLED2: " + inputEnabled);
+        	if (inputEnabled == true)
+        	{
+        		System.out.println("DISABLE INPUT");
+        		setBoardDisable();
+        		inputEnabled = false;
+        		// initiateTurnListening is invoked in MovePiece
+        	}
+        	else
+        	{
+        		setBoardEnable();
+        		inputEnabled = true;
+        	}
+        }
         
         
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
