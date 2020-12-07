@@ -393,7 +393,6 @@ public class PieceView extends VBox {
      * @author Kristopher Rangel
      */
     public void setDragEnabled(boolean enabled) { 
-    	System.out.println("DRAG = " + enabled + " HERE XXXXXXXXX");
     	this.dragEnabled = enabled; 
     	}
     

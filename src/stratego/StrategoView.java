@@ -516,6 +516,14 @@ public class StrategoView extends Application implements Observer {
         });
     }
     
+    /**
+     * Shows an alert of the given type with the message passed.
+     * 
+     * @param type alert type
+     * @param message message with alert
+     * 
+     * @author Kristopher Rangel
+     */
     private void showAlert(AlertType type, String message) 
     {
         Alert alert = new Alert(type, message);
@@ -525,6 +533,11 @@ public class StrategoView extends Application implements Observer {
         alert.showAndWait().filter(response -> response == ButtonType.OK);
     }
     
+    /**
+     * Sets Drag and Drop enabled for all PieceViews in the board.
+     * 
+     * @author Kristopher Rangel
+     */
     private void setBoardEnable() {
         board.getChildren().iterator().forEachRemaining(e -> {
             PieceView pv = (PieceView) e;
@@ -533,30 +546,11 @@ public class StrategoView extends Application implements Observer {
         });
     }
     
-//    private void setBoardDisable() {
-//        board.getChildren().iterator().forEachRemaining(e -> {
-//            PieceView pv = (PieceView) e;
-//            pv.setDropEnabled(false);
-//            pv.setDragEnabled(false);
-//        });
-//    }
-//    
-//    private void setPiecesBoxDisable() {
-//        piecesBox.getChildren().iterator().forEachRemaining(e -> {
-//        	if (e instanceof PieceView)
-//        	{
-//        		PieceView pv = (PieceView) e;
-//        		pv.setDropEnabled(false);
-//        		pv.setDragEnabled(false);
-//        	}
-//        });
-//    }
-    
     /**
      * <ul><b><i>endSetup</i></b></ul>
      * <ul><ul><p><code>private void endSetup () </code></p></ul>
      *
-     *  Performs actions required at the conclusion of the "setup" period before play.
+     * Performs actions required at the conclusion of the "setup" period before play.
      *
      * @author Kristopher Rangel
      */
@@ -566,7 +560,6 @@ public class StrategoView extends Application implements Observer {
         for(int row = SETUP_START_ROW; row < 10; row++) {
             for(int col = 0; col < 10; col++) {
                 PieceView pv = (PieceView) board.getChildren().get(row * 10 + col);
-                //pv.setDropEnabled(false); //----------------------------------------------------
                 if(pv.getPieceType() != Piece.PieceType.EMPTY) {
                     setupRow = row - 6;
                     setupCol = translate(col);
@@ -575,31 +568,23 @@ public class StrategoView extends Application implements Observer {
                         setupRow = 3 - setupRow;
                     }
                     controller.addToSetup(setupRow, setupCol, pv.getPieceType(), colorInt);
-                }
-                    
+                }      
             }
         }
         // Zeroing out quantity labels in event controller auto-filled any of the board
         for(Label l : countLabels) { l.setText("0"); }
         
         // disable Pieces box for client and server
-        // disable board for client and server
         board.setDisable(true);
+        // disable board for client and server
         piecesBox.setDisable(true);
         inputEnabled = false;
         
         // Requesting that controller update the model (this will trigger an update() to the StrategoView)
         sentSetup = true;
         controller.setBoard(colorInt);
-        
-        
-        
-        //setBoardDisable(); -- remove?
-        //setPiecesBoxDisable(); -- remove?
-        
                 
         //TODO need to coordinate server/client setup completion before next
-        
         //TODO after setup stuff
     }
     
@@ -656,16 +641,10 @@ public class StrategoView extends Application implements Observer {
         // disallowing player to mover other player's pieces
         if (p.color() != colorInt && p.color() != Piece.NONE)
         {
-        	System.out.println("DRAG OTHER PLAYER == false; modelRow " + modelRow);
-        	System.out.println("colorInt " + colorInt);
-        	System.out.println("pieceColor " + p.color());
         	pv.setDragEnabled(false);
         }
         else if (p.color() == colorInt)
         {
-        	System.out.println("DRAG THIS PLAYER == true; modelRow " + modelRow);
-        	System.out.println("colorInt " + colorInt);
-        	System.out.println("pieceColor " + p.color());
         	pv.setDragEnabled(true);
         }
         // all except Lakes should have drop enabled
@@ -763,9 +742,6 @@ public class StrategoView extends Application implements Observer {
             setBoardEnable();    
         }
         
-        System.out.println("MSGRECVCOUNT: " + msgRecvCount);
-        System.out.println("isServer: " + isServer);
-        
         if(arg instanceof BoardSetupMessage && setupEnabled) 
         {	
             PieceType[][] initialSetup = ((BoardSetupMessage) arg).getInitialSetup();
@@ -774,9 +750,7 @@ public class StrategoView extends Application implements Observer {
             	
             if (color != colorInt) // setup recieved
             	recvOtherSetup = true;
-            
-            System.out.println(recvOtherSetup);
-            System.out.println(sentSetup);
+
             if (recvOtherSetup && sentSetup)
             {
             	// proceed to 'battle phase'
@@ -785,67 +759,46 @@ public class StrategoView extends Application implements Observer {
             	if (isServer)
             	{
             		// enable server board
-            		//setBoardEnable(); //-- remove?
             		board.setDisable(false);
             		inputEnabled = true;
-            		System.out.println("iNPUT ENABLED3");
             	}
             	else // isClient
             	{
             		inputEnabled = false;
-            		//setBoardDisable(); -- remove?
             		board.setDisable(true); // should already be disabled?
             		controller.initiateTurnListening();
             	}
             }
-            
             if(ENABLE_CONSOLE_DEBUG) { System.out.println("setup disabled"); }
- 
         } 
         else if (arg instanceof SinglePositionMessage) 
         {
-        	System.out.println("INPUT ENABLED1: " + inputEnabled);
         	int row = ((SinglePositionMessage) arg).getRow();
         	int col = ((SinglePositionMessage) arg).getCol();
         	Piece p = ((SinglePositionMessage) arg).getPiece();
         	
-        	System.out.println("UPDATE POSITION");
         	updatePosition(row, col, p);
         	
         	msgRecvCount++;
         }
-
-//        } else {
-//            // Everything else not dependent upon imediately following setup
-//        	System.out.println("manual board update");
-//            manualBoardUpdate();
-//        }
         
         // switching player turns
         if (msgRecvCount == 3)
         {
-        	System.out.println("CHECKING MSGCOUNT");
         	msgRecvCount = 0;
         	// switch board enabled/disabled
-        	System.out.println("INPUT ENABLED2: " + inputEnabled);
         	if (inputEnabled == true)
         	{
-        		System.out.println("DISABLE INPUT");
-        		//setBoardDisable(); -- remove?
         		board.setDisable(true);
         		inputEnabled = false;
         		// initiateTurnListening is invoked in MovePiece
         	}
         	else
         	{
-        		//setBoardEnable(); -- remove?
         		board.setDisable(false);
         		inputEnabled = true;
         	}
         }
-        
-        
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
-
     }
 }

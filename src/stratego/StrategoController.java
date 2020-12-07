@@ -53,6 +53,12 @@ public class StrategoController
 		resetAvailible(Piece.BLUE);
 		resetAvailible(Piece.RED);
 	}
+	
+	/**
+	 * Reset HasMaps of piecees availible for placement to include all 40
+	 * pieces.
+	 * @param color color of piece set resesting
+	 */
 	private void resetAvailible(int color)
 	{
 		if (color == Piece.BLUE) 
@@ -151,22 +157,16 @@ public class StrategoController
     }
     
     /**
-     * 
+     * Sets up {@link StrategoController} to listen for three incoming 
+     * {@link SinglePositionMessage}.
      */
     public void initiateTurnListening()
     {
     	Thread recvSetupThread = new Thread(() -> 
     	{
     		SinglePositionMessage recvMsg1 = network.readMessage();
-    		System.out.println(network.getErrorMessage());
     		SinglePositionMessage recvMsg2 = network.readMessage();
-    		System.out.println(network.getErrorMessage());
     		SinglePositionMessage recvMsg3 = network.readMessage();
-    		System.out.println(network.getErrorMessage());
-    		
-    		System.out.println(recvMsg1);
-			System.out.println(recvMsg2);
-			System.out.println(recvMsg3);
 			
     		final int row1 = recvMsg1.getRow();
     		final int col1 = recvMsg1.getCol();
@@ -182,9 +182,6 @@ public class StrategoController
     		
     		Platform.runLater(() -> 
     		{
-    			System.out.println(recvMsg1);
-    			System.out.println(recvMsg2);
-    			System.out.println(recvMsg3);
     			// model/view update pushed until later in the main thread
             	model.setPosition(row1, col1, piece1);
             	model.setPosition(row2, col2, piece2);
@@ -213,59 +210,48 @@ public class StrategoController
 		int winner = Piece.whoWins(srcPiece, dstPiece);
 		
 		if (!Piece.isMoveValid(srcRow, srcCol, dstRow, dstCol, srcPiece.type) || winner == -1)
-		{
-			System.out.println("MOVE NOT VALID");
 			return false;
-		}
 			
 		// does move skip over any other pieces/lakes (only applicable to scout)
 		if (srcPiece.type == PieceType.SCOUT && doesMoveJump(srcRow, srcCol, dstRow, dstCol))
-		{
-			System.out.println("SCOUT JUMPS - MOVE INVALID");
 			return false;
-		}
 			
 		// move is valid (srcPiece is not empty or a lake)
-		model.removePosition(srcRow, srcCol);
-		model.setPosition(dstRow, dstCol, srcPiece);
+		// 3 total messages sent locally to update
+		model.removePosition(srcRow, srcCol); // 1st locally
+		model.setPosition(dstRow, dstCol, srcPiece); // 2nd locally
 		
-		// 3 total messages sent
-		System.out.println("1st msg");
-		network.writeMessage(new SinglePositionMessage(srcRow, srcCol, new Piece(PieceType.EMPTY)));
-		System.out.println("2nd msg");
-		network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece));
+		// 3 total messages sent over network to update
+		network.writeMessage(new SinglePositionMessage(srcRow, srcCol, new Piece(PieceType.EMPTY))); // 1st over network
+		network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece)); // 2nd over network
 		
 		if (winner == 0) // both removed
 		{
 			model.removePiece(srcPiece);
 			model.removePiece(dstPiece);
-			model.removePosition(dstRow, dstCol);
+			model.removePosition(dstRow, dstCol); // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, new Piece(PieceType.EMPTY)));
-			System.out.println("3rd msg a");
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, new Piece(PieceType.EMPTY))); // 3rd over network
 		}
 		else if (winner == 1) // attacker remains, defender removed
 		{
 			model.removePiece(dstPiece);
-			model.setPosition(dstRow, dstCol, srcPiece); // unnecessary, but need consistent number of messages sent
+			model.setPosition(dstRow, dstCol, srcPiece); // unnecessary, but need consistent number of messages sent // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece));
-			System.out.println("3rd msg b");
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece)); // 3rd over network
 		}
 		else if (winner == 2) // defender remains, attacker removed
 		{
 			model.removePiece(srcPiece);
-			model.setPosition(dstRow, dstCol, dstPiece);
+			model.setPosition(dstRow, dstCol, dstPiece); // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, dstPiece));
-			System.out.println("3rd msg c");
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, dstPiece)); // 3rd over network
 		}
 		else // winner == -1
 		{
 			// unnecessary, but need consistent number of messages sent
-			model.setPosition(srcRow, srcCol, srcPiece);
-			network.writeMessage(new SinglePositionMessage(srcRow, srcCol, srcPiece)); 
-			System.out.println("3rd msg d");
+			model.setPosition(srcRow, srcCol, srcPiece); // 3rd locally
+			network.writeMessage(new SinglePositionMessage(srcRow, srcCol, srcPiece)); // 3rd over network
 		}
 		
 		initiateTurnListening();
