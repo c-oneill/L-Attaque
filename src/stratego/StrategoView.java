@@ -500,18 +500,12 @@ public class StrategoView extends Application implements Observer {
         setupEnabled = true;
         changePieceBoxColor(playerColor);
         
-//        // Enabling drop on setup area of board
-//        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
-//        setupArea.forEach( e -> {
-//            PieceView pv = (PieceView) e;
-//            pv.setDropEnabled(true);
-//        } );
-        
-        // Enabling drag on the entire board
-        board.getChildren().iterator().forEachRemaining(e -> {
+        // Enabling drop on setup area of board
+        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
+        setupArea.forEach( e -> {
             PieceView pv = (PieceView) e;
             pv.setDropEnabled(true);
-        });
+        } );
     }
     
     /**
@@ -773,6 +767,14 @@ public class StrategoView extends Application implements Observer {
             System.out.println("SETUP BOARD");
             updateBoardSetup(color, initialSetup);
             	
+            if (sentSetup)
+            {
+                // Enabling drag on the entire board
+                board.getChildren().iterator().forEachRemaining(e -> {
+                    PieceView pv = (PieceView) e;
+                    pv.setDropEnabled(true);
+                });
+            }
             if (color != colorInt) // setup recieved
             	recvOtherSetup = true;
 
