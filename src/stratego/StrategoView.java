@@ -217,7 +217,9 @@ public class StrategoView extends Application implements Observer {
         Menu fileMenu = new Menu("File");
         MenuItem newGame = new MenuItem("New Game");
         newGame.setOnAction(e -> { getNewGameOptions(); });
-        fileMenu.getItems().add(newGame);
+        MenuItem endGame = new MenuItem("End Game");
+        endGame.setOnAction(e -> { gameOver(); }); 
+        fileMenu.getItems().addAll(newGame, endGame);
         menuBar.getMenus().add(fileMenu);
     }
     
@@ -428,7 +430,19 @@ public class StrategoView extends Application implements Observer {
         });
         timer.startTimer();
     }
-    
+    /**
+     * <ul><b><i>hideTimer</i></b></ul>
+     * <ul><ul><p><code>private void hideTimer () </code></p></ul>
+     *
+     * Hides the timer and setup done button UI elements.
+     * 
+     * @author Kristopher Rangel
+     *
+     */
+    private void hideTimer() {
+        clockFace.setVisible(false);
+        setupDone.setVisible(false);
+    }
     /**
      * <ul><b><i>getNewGameOptions</i></b></ul>
      * <ul><ul><p><code>private void getNewGameOptions () </code></p></ul>
@@ -462,6 +476,35 @@ public class StrategoView extends Application implements Observer {
         }
  
     }
+    /**
+     * <ul><b><i>exitGameOption</i></b></ul>
+     * <ul><ul><p><code>private void endGameOption () </code></p></ul>
+     *
+     * Performs required functions of ending the game.
+     *
+     *@author Kristopher Rangel
+     */
+    private void gameOver() {
+        
+        //TODO communicate gameOver status to connected server/client
+        
+        // Showing applicable win message.
+        int winner = controller.winner();
+        String winMsg = "The game has end at user request.";
+        if(winner == colorInt)
+            winMsg = "You won the game!";
+        else if(winner != 0)
+            winMsg = "Your opponent won the game!";
+        this.showAlert(AlertType.INFORMATION, winMsg);
+        
+        // cleanup
+        controller.closeNetwork();
+        hideTimer();
+        timer.stopTimer();
+        
+        //TODO add end of game stuff
+    }
+    
     
     /**
      * <ul><b><i>startNewGame</i></b></ul>
