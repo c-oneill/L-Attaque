@@ -184,6 +184,7 @@ public class StrategoView extends Application implements Observer {
         
     }
     
+    // TODO: need more here
     public void stop() {
         if(timer != null)
             timer.stopTimer();
@@ -313,19 +314,14 @@ public class StrategoView extends Application implements Observer {
                 label.setFont(new Font(COUNT_FONT_SIZE));
                 countLabels.add(label);
                 piecesBox.add(label, col, row + 1, 1 , 1);
-
-                
                 
                 pieceIndex++;
             }
             // Spacer for the timer
             VBox empty = new VBox(70);
             empty.setPrefWidth(70);
-            piecesBox.add(empty, 0, PIECES_ROWS);
-            
-        }
-        
-        
+            piecesBox.add(empty, 0, PIECES_ROWS);  
+        }  
     }
 
     private void changePieceBoxColor(Color borderColor) {
@@ -481,6 +477,8 @@ public class StrategoView extends Application implements Observer {
      */
     private void startNewGame(String server, int port) 
     {
+    	// TODO: disable network setup botton
+    	
     	// if previous connection exists, close it
     	controller.closeNetwork(); 
     	//setup network connection
@@ -505,12 +503,12 @@ public class StrategoView extends Application implements Observer {
         setupEnabled = true;
         changePieceBoxColor(playerColor);
         
-        
-        // Enabling drag on the entire board
-        board.getChildren().iterator().forEachRemaining(e -> {
+        // Enabling drop on setup area of board
+        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
+        setupArea.forEach( e -> {
             PieceView pv = (PieceView) e;
             pv.setDropEnabled(true);
-        });
+        } );
     }
     
     /**
@@ -583,6 +581,32 @@ public class StrategoView extends Application implements Observer {
                 
         //TODO need to coordinate server/client setup completion before next
         //TODO after setup stuff
+    }
+    
+    /**
+     * Perform GameOver sequence.
+     * @param winner color of winner: {@value Piece#RED}, {@value Piece#BLUE}, 
+     * or {@value Piece#NONE} (for tie)
+     * 
+     * @author Caroline O'Neill
+     */
+    private void gameOver(int winner)
+    {    	
+    	// display winning message pop-up
+    	String msg;
+    	if (winner == Piece.NONE)
+    		msg = "No winner.";
+
+    	else if (winner == colorInt)
+    		msg = "You won!";
+    	
+    	else // winner == other player
+    		msg = "You lost!";
+
+    	showAlert(AlertType.INFORMATION, msg);
+    	
+    	init();
+    	start(stage);
     }
     
     /**
@@ -747,15 +771,24 @@ public class StrategoView extends Application implements Observer {
         {	
             PieceType[][] initialSetup = ((BoardSetupMessage) arg).getInitialSetup();
             int color = ((BoardSetupMessage) arg).getColor();
+            System.out.println("SETUP BOARD");
             updateBoardSetup(color, initialSetup);
             	
+            if (sentSetup)
+            {
+                // Enabling drag on the entire board
+                board.getChildren().iterator().forEachRemaining(e -> {
+                    PieceView pv = (PieceView) e;
+                    pv.setDropEnabled(true);
+                });
+            }
             if (color != colorInt) // setup recieved
             	recvOtherSetup = true;
 
             if (recvOtherSetup && sentSetup)
             {
             	// proceed to 'battle phase'
-            	//TODO: alert about battle beginning
+            	//TODO: alert about battle beginning?
             	setupEnabled = false;
             	if (isServer)
             	{
@@ -774,10 +807,11 @@ public class StrategoView extends Application implements Observer {
         } 
         else if (arg instanceof SinglePositionMessage) 
         {
+        	System.out.println("UPDATE POSITION");
         	int row = ((SinglePositionMessage) arg).getRow();
         	int col = ((SinglePositionMessage) arg).getCol();
         	Piece p = ((SinglePositionMessage) arg).getPiece();
-        	
+
         	updatePosition(row, col, p);
         	
         	msgRecvCount++;
@@ -786,6 +820,7 @@ public class StrategoView extends Application implements Observer {
         // switching player turns
         if (msgRecvCount == 3)
         {
+        	System.out.println("MSG COUNT == 3");
         	msgRecvCount = 0;
         	// switch board enabled/disabled
         	if (inputEnabled == true)
@@ -799,7 +834,21 @@ public class StrategoView extends Application implements Observer {
         		board.setDisable(false);
         		inputEnabled = true;
         	}
+        	
+        	System.out.println("CHECKING GAME OVER");
+            //check if game is over
+            int winner = controller.winner();
+            System.out.println("Winner: " + winner);
+            if (winner != Piece.NONE)
+            {
+            	System.out.println("GAMEOVER");
+            	System.out.println("isServer: " + isServer);
+            	gameOver(winner);
+            }
         }
+        
+        
+        
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
     }
     

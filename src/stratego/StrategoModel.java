@@ -121,6 +121,27 @@ public class StrategoModel extends Observable
 	}
 	
 	/**
+	 * Adds piece to red or blue pieces map. If the piece color is 
+	 * {@link Piece#NONE}, then no action is taken and it returns false.
+	 * @param piece piece added
+	 * @return true is blue or red piece is added to the maps, false
+	 * otherwise
+	 */
+	public boolean addPiece(Piece piece)
+	{
+		if (piece.color() == Piece.BLUE)
+			bluePieces.put(piece.type, bluePieces.get(piece.type) + 1);
+		
+		else if (piece.color() == Piece.RED)
+			redPieces.put(piece.type, redPieces.get(piece.type) + 1);
+		
+		else
+			return false;
+		
+		return true;
+	}
+	
+	/**
 	 * Sets the position indicated with the passed piece. Notifies observers of 
 	 * change at the position with a {@link SinglePositionMessage}.
 	 * @param row row of position

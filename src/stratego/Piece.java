@@ -32,11 +32,21 @@ public class Piece implements Serializable
 	private int color = NONE;
 	public final PieceType type;
 	
+	/**
+	 * Piece constructor.
+	 * @param type piece type
+	 */
 	public Piece(PieceType type)
 	{
 		this.type = type;
 	}
 	
+	/**
+	 * Enum PieceType associates level and moveability values with each kind of
+	 * Stratego game piece.
+	 * 
+	 * @author Caroline O'Neill
+	 */
 	public enum PieceType
 	{
 		EMPTY(false, -1),
@@ -59,10 +69,33 @@ public class Piece implements Serializable
 		private boolean moveable;
 		private int level;
 		
+		/**
+		 * PieceType enum constructor.
+		 * @param moveable
+		 * @param level
+		 */
 		private PieceType(boolean moveable, int level)
 		{
 			this.moveable = moveable;
 			this.level = level;
+		}
+		
+		/**
+		 * Indicates if PieceType is moveable.
+		 * @return true if moveable, false other wise
+		 */
+		public boolean isMoveable()
+		{
+			return moveable;
+		}
+		
+		/**
+		 * Gets PieceType level.
+		 * @return level
+		 */
+		public int level()
+		{
+			return level;
 		}
 	}
 	

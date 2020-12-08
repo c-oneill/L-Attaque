@@ -18,18 +18,36 @@ public class SinglePositionMessage implements Serializable
 	private int row;
 	private int col;
 	private Piece piece;
+	private Piece removePlace; // piece to remove/place
+	private boolean removing; // true = remove, false = add
 	
 	/**
 	 * SinglePositionMessage constructor.
 	 * @param row row position
 	 * @param col column position
 	 * @param piece piece at position
+	 * @param removing piece to remove (null if no piece to remove) 
+	 * the board
 	 */
-	public SinglePositionMessage(int row, int col, Piece piece)
+	public SinglePositionMessage(int row, int col, Piece piece, Piece removePlace, boolean removing)
 	{
 		this.row = row;
 		this.col = col;
 		this.piece = piece;
+		this.removePlace = removePlace;
+		this.removing = removing;
+	}
+	
+	/**
+	 * SinglePositionMessage constructor. Null for piece to remove.
+	 * @param row row position
+	 * @param col column position
+	 * @param piece piece at position
+	 * the board
+	 */
+	public SinglePositionMessage(int row, int col, Piece piece)
+	{
+		this(row, col, piece, null, false);
 	}
 	
 	/**
@@ -75,6 +93,24 @@ public class SinglePositionMessage implements Serializable
 	public PieceType getPieceType()
 	{
 		return piece.type;
+	}
+	
+	/**
+	 * Gets piece to remove from the board. Null if no piece to remove
+	 * @return true if piece in message is removed, false otherwise
+	 */
+	public Piece getPieceToRemovePlace()
+	{
+		return removePlace;
+	}
+	
+	/**
+	 * Indicates is the remove/place piece is removed or added.
+	 * @return true if removed, false if added
+	 */
+	public boolean isRemoved()
+	{
+		return removing;
 	}
 	
 }
