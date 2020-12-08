@@ -4,14 +4,12 @@ import java.util.Observable;
 import java.util.Observer;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -118,8 +116,11 @@ public class StrategoView extends Application implements Observer {
             stage.setWidth(WINDOW_WIDTH);
             stage.setTitle("Stratego");
             stage.setResizable(true);
+
             stage.setScene(scene);
             stage.show();
+            
+            
             this.stage = stage;
 
         }catch(Exception e) {
@@ -175,11 +176,13 @@ public class StrategoView extends Application implements Observer {
         initPieces();
         initTimer();
 
-        window = new BorderPane();        
-        window.setTop(menuBar);
+
+        window = new BorderPane();    
         window.setCenter(board);
+        window.setTop(menuBar);
         window.setRight(chatBox);
         window.setLeft(piecesBox);
+
     }
     
     private void reInit()
@@ -246,7 +249,7 @@ public class StrategoView extends Application implements Observer {
         board = new GridPane();
 
         board.setPadding(new Insets(INSETS_PADDING, INSETS_PADDING, INSETS_PADDING, INSETS_PADDING));
-        board.setAlignment(Pos.CENTER);
+        board.setAlignment(Pos.TOP_LEFT);
         
         // creating piece layout at bottom
         board.getChildren().clear();
