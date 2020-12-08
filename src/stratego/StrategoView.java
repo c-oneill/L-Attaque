@@ -3,7 +3,6 @@ package stratego;
 import java.util.Observable;
 import java.util.Observer;
 
-import java.util.List;
 import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -11,7 +10,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.text.Font;
@@ -41,8 +39,8 @@ public class StrategoView extends Application implements Observer {
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
     private final int SETUP_START_ROW = 6;
-    private final int SETUP_INDEX_START = 60;
-    private final int SETUP_INDEX_END = 100;
+    //private final int SETUP_INDEX_START = 60;
+    //private final int SETUP_INDEX_END = 100;
 
     public static double STANDARD;
     
