@@ -93,4 +93,20 @@ import stratego.StrategoModel;
 			bluePieces.put(PieceType.FLAG, 1);
 			assertEquals(model.getBluePieces(), bluePieces);
 		}
+		@Test
+		public void addPieceTest() {
+			StrategoModel model = new StrategoModel();
+			Piece piece1 = new Piece(PieceType.EMPTY);
+			Piece piece2 = new Piece(PieceType.MARSHAL);
+			Piece piece3 = new Piece(PieceType.GENERAL);
+			
+			piece1.setColor(Piece.NONE);
+			piece2.setColor(Piece.RED);
+			piece3.setColor(Piece.BLUE);
+			
+			assertFalse(model.addPiece(piece1));
+			assertTrue(model.addPiece(piece2));
+			assertTrue(model.addPiece(piece3));
+			
+		}
 }
