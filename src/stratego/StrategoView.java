@@ -490,6 +490,18 @@ public class StrategoView extends Application implements Observer {
      */
     private void gameOver() {
         
+        //TODO communicate gameOver status to connected server/client
+        
+        // Showing applicable win message.
+        int winner = controller.winner();
+        String winMsg = "The game has end at user request.";
+        if(winner == colorInt)
+            winMsg = "You won the game!";
+        else if(winner != 0)
+            winMsg = "Your opponent won the game!";
+        this.showAlert(AlertType.INFORMATION, winMsg);
+        
+        // cleanup
         controller.closeNetwork();
         hideTimer();
         timer.stopTimer();
