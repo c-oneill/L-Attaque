@@ -3,6 +3,7 @@ package stratego;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javafx.application.Platform;
 import javafx.scene.paint.Color;
@@ -171,20 +172,29 @@ public class StrategoController
     		final int row1 = recvMsg1.getRow();
     		final int col1 = recvMsg1.getCol();
     		final Piece piece1 = recvMsg1.getPiece();
+    		final Piece rp1 = recvMsg1.getPieceToRemovePlace();
+        	final boolean removing1 = recvMsg1.isRemoved();
     		
     		final int row2 = recvMsg2.getRow();
     		final int col2 = recvMsg2.getCol();
     		final Piece piece2 = recvMsg2.getPiece();
+    		final Piece rp2 = recvMsg2.getPieceToRemovePlace();
+        	final boolean removing2 = recvMsg2.isRemoved();
     		
     		final int row3 = recvMsg3.getRow();
     		final int col3 = recvMsg3.getCol();
     		final Piece piece3 = recvMsg3.getPiece();
+    		final Piece rp3 = recvMsg3.getPieceToRemovePlace();
+        	final boolean removing3 = recvMsg3.isRemoved();
     		
     		Platform.runLater(() -> 
     		{
     			// model/view update pushed until later in the main thread
+    			removeAddPiece(rp1, removing1);
             	model.setPosition(row1, col1, piece1);
+            	removeAddPiece(rp2, removing2);
             	model.setPosition(row2, col2, piece2);
+            	removeAddPiece(rp3, removing3);
             	model.setPosition(row3, col3, piece3);
     		});
     	});
@@ -222,8 +232,8 @@ public class StrategoController
 		model.setPosition(dstRow, dstCol, srcPiece); // 2nd locally
 		
 		// 3 total messages sent over network to update
-		network.writeMessage(new SinglePositionMessage(srcRow, srcCol, new Piece(PieceType.EMPTY))); // 1st over network
-		network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece)); // 2nd over network
+		network.writeMessage(new SinglePositionMessage(srcRow, srcCol, new Piece(PieceType.EMPTY), srcPiece, true)); // 1st over network
+		network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece, dstPiece, true)); // 2nd over network
 		
 		if (winner == 0) // both removed
 		{
@@ -231,21 +241,21 @@ public class StrategoController
 			model.removePiece(dstPiece);
 			model.removePosition(dstRow, dstCol); // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, new Piece(PieceType.EMPTY))); // 3rd over network
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, new Piece(PieceType.EMPTY), dstPiece, true)); // 3rd over network
 		}
 		else if (winner == 1) // attacker remains, defender removed
 		{
 			model.removePiece(dstPiece);
 			model.setPosition(dstRow, dstCol, srcPiece); // unnecessary, but need consistent number of messages sent // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece)); // 3rd over network
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece, srcPiece, false)); // 3rd over network
 		}
 		else if (winner == 2) // defender remains, attacker removed
 		{
 			model.removePiece(srcPiece);
 			model.setPosition(dstRow, dstCol, dstPiece); // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, dstPiece)); // 3rd over network
+			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, dstPiece, dstPiece, false)); // 3rd over network
 		}
 		else // winner == -1
 		{
@@ -258,6 +268,34 @@ public class StrategoController
 		
 		return true;
 	}
+	
+	/**
+	 * Removes indicated piece from the model's pieces availible map for that 
+	 * color. This method addresses the issue where pieces sent over the
+	 * network to the other player are not actually removed from the pieces
+	 * availible map (since
+	 * {@link StrategoController#movePiece(int, int, int, int)} is not called).
+	 * @param piece
+	 * @param removing flag - true if piece is removed, false if added
+	 */
+	public void removeAddPiece(Piece piece, boolean removing)
+	{
+		if (piece != null)
+		{
+			if (removing)
+			{
+				System.out.println("piece removed");
+				model.removePiece(piece);
+			}
+			else
+			{
+				System.out.println("piece added");
+				model.addPiece(piece);	
+			}
+
+		}
+	}
+	
 	
 	/**
 	 * Determines if a given moves jumps other pieces or lakes. Assumes
@@ -453,15 +491,51 @@ public class StrategoController
 	 */
 	public int winner()
 	{
+		System.out.println("red: " + model.getRedPieces());
+		System.out.println("blue: " + model.getBluePieces());
 		if (model.getBluePieces().get(PieceType.FLAG) < 1)
 			return Piece.RED;
 		
 		else if (model.getRedPieces().get(PieceType.FLAG) < 1)
 			return Piece.BLUE;
 		
+		else if (!stillMoveablePieces(Piece.BLUE))
+			return Piece.RED;
+		
+		else if (!stillMoveablePieces(Piece.RED))
+			return Piece.BLUE;
+		
 		else
 			return Piece.NONE;
 	}
+	
+	/**
+	 * Iterates through the pieces on the board and indicates if there are still
+	 * at least one moveable piece in the color passed. Game is over when either
+	 * flag is captured or either team loses all its moveable pieces.
+	 * @param color color of pieces to check
+	 * @return true if there are still moveable pieces, false otherwise
+	 */
+	private boolean stillMoveablePieces(int color)
+	{
+		HashMap<PieceType, Integer> pieces = null;
+		if (color == Piece.BLUE)
+			pieces = model.getBluePieces();
+		else if (color == Piece.RED)
+			pieces = model.getRedPieces();
+		else
+			return false;
+		
+		Iterator<Entry<PieceType, Integer>> it = pieces.entrySet().iterator();
+		while(it.hasNext()) 
+		{
+			Entry<PieceType, Integer> entry = it.next();
+			if (entry.getKey().isMoveable() && entry.getValue() > 0)
+				return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * <ul><b><i>checkAvailable</i></b></ul>
 	 * <ul><ul><p><code>public int checkAvailable (PieceType pt, Color color) </code></p></ul>
