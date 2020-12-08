@@ -865,10 +865,10 @@ public class StrategoView extends Application implements Observer {
                 showAlert(AlertType.INFORMATION, "The game has started!");
                 hideTimer();
             	setupEnabled = false;
+                setOpponentDropable(true);
             	if (isServer)
             	{
             		// enable server board
-            	    setOpponentDropable(true);
             		board.setDisable(false);
             		inputEnabled = true;
             	}
