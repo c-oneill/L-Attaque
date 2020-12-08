@@ -544,6 +544,7 @@ public class StrategoView extends Application implements Observer {
         if(hasConnectionError) 
         {
         	showAlert(AlertType.ERROR, controller.getNetworkError());
+        	return;
     	} 
         else 
     	{
