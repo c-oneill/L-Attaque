@@ -71,6 +71,7 @@ public class StrategoView extends Application implements Observer {
     private GridPane piecesBox;
     private VBox chatBox;
     private MenuBar menuBar; 
+    private MenuItem newGame;
     private TextField chatDisplay;
     private TextField chatEntry;
     private Label clockFace;
@@ -223,7 +224,7 @@ public class StrategoView extends Application implements Observer {
     private void initMenuBar() {
         menuBar = new MenuBar();
         Menu fileMenu = new Menu("File");
-        MenuItem newGame = new MenuItem("New Game");
+        newGame = new MenuItem("New Game");
         newGame.setOnAction(e -> { getNewGameOptions(); });
         MenuItem endGame = new MenuItem("End Game");
         endGame.setOnAction(e -> { gameOver(Piece.NONE); }); 
@@ -543,6 +544,7 @@ public class StrategoView extends Application implements Observer {
     	} 
         else 
     	{
+            newGame.setDisable(true);
         	if (isServer) 
         		stage.setTitle("Stratego (Server)");
         	else 
