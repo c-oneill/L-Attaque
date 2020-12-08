@@ -4,11 +4,14 @@ import java.util.Observable;
 import java.util.Observer;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -39,8 +42,8 @@ public class StrategoView extends Application implements Observer {
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
     private final int SETUP_START_ROW = 6;
-    //private final int SETUP_INDEX_START = 60;
-    //private final int SETUP_INDEX_END = 100;
+    private final int SETUP_INDEX_START = 60;
+    private final int SETUP_INDEX_END = 100;
 
     public static double STANDARD;
     
@@ -118,8 +121,6 @@ public class StrategoView extends Application implements Observer {
             stage.show();
             this.stage = stage;
 
-        
-            
         }catch(Exception e) {
             if(ENABLE_CONSOLE_DEBUG) {
                 System.out.println("Error with javafx while initializing the UI.");
@@ -142,7 +143,7 @@ public class StrategoView extends Application implements Observer {
      *
      */
     public void init() {
-    	
+    	System.out.println("INIT");
     	// adjust to native resolution
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         double h = primScreenBounds.getHeight();
@@ -173,17 +174,26 @@ public class StrategoView extends Application implements Observer {
         initPieces();
         initTimer();
 
-        
         window = new BorderPane();        
         window.setTop(menuBar);
         window.setCenter(board);
         window.setRight(chatBox);
         window.setLeft(piecesBox);
-        
     }
     
-    // TODO: need more here
+    private void reInit()
+    {
+    	init();
+    	stage.setScene(new Scene(window));
+    	//stage.show();
+    }
+    
+    // TODO: need more here?
     public void stop() {
+    	// cleanup
+        controller.closeNetwork();
+        
+        hideTimer();
         if(timer != null)
             timer.stopTimer();
     }
@@ -216,7 +226,7 @@ public class StrategoView extends Application implements Observer {
         MenuItem newGame = new MenuItem("New Game");
         newGame.setOnAction(e -> { getNewGameOptions(); });
         MenuItem endGame = new MenuItem("End Game");
-        endGame.setOnAction(e -> { gameOver(); }); 
+        endGame.setOnAction(e -> { gameOver(Piece.NONE); }); 
         fileMenu.getItems().addAll(newGame, endGame);
         menuBar.getMenus().add(fileMenu);
     }
@@ -474,34 +484,36 @@ public class StrategoView extends Application implements Observer {
         }
  
     }
-    /**
-     * <ul><b><i>exitGameOption</i></b></ul>
-     * <ul><ul><p><code>private void endGameOption () </code></p></ul>
-     *
-     * Performs required functions of ending the game.
-     *
-     *@author Kristopher Rangel
-     */
-    private void gameOver() {
-        
-        //TODO communicate gameOver status to connected server/client
-        
-        // Showing applicable win message.
-        int winner = controller.winner();
-        String winMsg = "The game has end at user request.";
-        if(winner == colorInt)
-            winMsg = "You won the game!";
-        else if(winner != 0)
-            winMsg = "Your opponent won the game!";
-        this.showAlert(AlertType.INFORMATION, winMsg);
-        
-        // cleanup
-        controller.closeNetwork();
-        hideTimer();
-        timer.stopTimer();
-        
-        //TODO add end of game stuff
-    }
+    
+    // redundant method? gameOver(int winner) below
+//    /**
+//     * <ul><b><i>exitGameOption</i></b></ul>
+//     * <ul><ul><p><code>private void endGameOption () </code></p></ul>
+//     *
+//     * Performs required functions of ending the game.
+//     *
+//     *@author Kristopher Rangel
+//     */
+//    private void gameOver() {
+//        
+//        //TODO communicate gameOver status to connected server/client
+//        
+//        // Showing applicable win message.
+//        int winner = controller.winner();
+//        String winMsg = "The game has ended at user request.";
+//        if(winner == colorInt)
+//            winMsg = "You won the game!";
+//        else if(winner != 0)
+//            winMsg = "Your opponent won the game!";
+//        this.showAlert(AlertType.INFORMATION, winMsg);
+//        
+//        // cleanup
+//        controller.closeNetwork();
+//        hideTimer();
+//        timer.stopTimer();
+//        
+//        //TODO add end of game stuff
+//    }
     
     
     /**
@@ -636,8 +648,10 @@ public class StrategoView extends Application implements Observer {
     	// display winning message pop-up
     	String msg;
     	if (winner == Piece.NONE)
-    		msg = "No winner.";
-
+    	{
+    		msg = "The game has ended at user's request.";
+    		//communicate gameOver status to connected server/client
+    	}
     	else if (winner == colorInt)
     		msg = "You won!";
     	
@@ -646,8 +660,8 @@ public class StrategoView extends Application implements Observer {
 
     	showAlert(AlertType.INFORMATION, msg);
     	
-    	init();
-    	start(stage);
+    	controller.closeNetwork();
+    	reInit();
     }
     
     /**
@@ -853,6 +867,10 @@ public class StrategoView extends Application implements Observer {
         	int col = ((SinglePositionMessage) arg).getCol();
         	Piece p = ((SinglePositionMessage) arg).getPiece();
 
+        	// user requested end game
+        	if (row == -1 && col == -1)
+        		gameOver(Piece.NONE);
+        	
         	updatePosition(row, col, p);
         	
         	msgRecvCount++;
