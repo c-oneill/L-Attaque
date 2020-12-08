@@ -246,16 +246,17 @@ public class PieceView extends VBox {
                     
                     // requesting movement from controller
                     moved = controller.movePiece(fromRow, fromCol, toRow, toCol);
-                    if(!moved) {
-                        
-                        System.out.println("Not moved (from controller)");
+                    
+                    
+                    if(StrategoView.ENABLE_CONSOLE_DEBUG) {
+                        if(!moved) {
+                            System.out.println("Not moved (from controller)");
+                        }
+                        System.out.printf("From Piece index: %d ", fromPieceIndex);
+                        testPrintPiece(fromPieceIndex);
+                        System.out.printf("To Piece index: %d ", toPieceIndex);
+                        testPrintPiece(toPieceIndex);
                     }
-                    
-                    
-                    System.out.printf("From Piece index: %d ", fromPieceIndex);
-                    testPrintPiece(fromPieceIndex);
-                    System.out.printf("To Piece index: %d ", toPieceIndex);
-                    testPrintPiece(toPieceIndex);
                     
                     
                 }else { // Not from board (placed during setup)

@@ -204,7 +204,9 @@ public class StrategoController
 	 */
 	public boolean movePiece(int srcRow, int srcCol, int dstRow, int dstCol)
 	{
-		System.out.println("MOVE PIECE");
+	    if(StrategoView.ENABLE_CONSOLE_DEBUG) {
+	        System.out.println("MOVE PIECE");
+	    }
 		Piece srcPiece = model.getPosition(srcRow, srcCol);
 		Piece dstPiece = model.getPosition(dstRow, dstCol);
 		int winner = Piece.whoWins(srcPiece, dstPiece);
