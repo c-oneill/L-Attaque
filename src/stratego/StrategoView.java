@@ -286,9 +286,9 @@ public class StrategoView extends Application implements Observer {
     private void initPieces() {
         countLabels = new ArrayList<Label>();
         pieces = new ArrayList<PieceView>();
-        String[] rank_images = {"ranks_flag.png","ranks_bomb.png", "ranks_1-spy.png", "ranks_2-scout.png",
-                                "ranks_3-Miner.png", "ranks_4-SGT.png", "ranks_5-LT.png", "ranks_6-CPT.png",
-                                "ranks_7-MAJ.png", "ranks_8-COL.png", "ranks_9-GEN.png", "ranks_10-Marshall.png"};
+        //String[] rank_images = {"ranks_flag.png","ranks_bomb.png", "ranks_1-spy.png", "ranks_2-scout.png",
+        //                        "ranks_3-Miner.png", "ranks_4-SGT.png", "ranks_5-LT.png", "ranks_6-CPT.png",
+        //                        "ranks_7-MAJ.png", "ranks_8-COL.png", "ranks_9-GEN.png", "ranks_10-Marshall.png"};
         piecesBox = new GridPane();
         BackgroundFill bgfill = new BackgroundFill(BACKGROUND_COLOR, CornerRadii.EMPTY, Insets.EMPTY);
         Background bg = new Background(bgfill);
@@ -399,7 +399,7 @@ public class StrategoView extends Application implements Observer {
         setupDone.setOnAction(e -> { 
 
             //TODO let timer run until other player is done also
-            timer.stopTimer(); 
+            timer.stopTimer();            
             endSetup();
             });
         piecesBox.add(setupDone, 0, row + 2, span, span);
@@ -556,19 +556,19 @@ public class StrategoView extends Application implements Observer {
         setupEnabled = true;
         changePieceBoxColor(playerColor);
         
-        // Enabling drop on setup area of board
-        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
-        setupArea.forEach( e -> {
-            PieceView pv = (PieceView) e;
+
+        
+        for(int i = SETUP_INDEX_START; i < SETUP_INDEX_END; i++) {
+            PieceView pv = (PieceView) board.getChildren().get(i);
             pv.setDropEnabled(true);
-        } );
+        }
     }
     
     /**
      * Shows an alert of the given type with the message passed.
      * 
-     * @param type alert type
-     * @param message message with alert
+     * @param type - the {@link AlertType} of the alert
+     * @param message the <code>String</code> message with alert
      * 
      * @author Kristopher Rangel
      */
@@ -576,8 +576,11 @@ public class StrategoView extends Application implements Observer {
     {
         Alert alert = new Alert(type, message);
         // setting alert location to match stage location
-        alert.setX(stage.getX());
-        alert.setY(stage.getY());
+        // offsets to shift alert more toward the middle of the window
+        double x_offset = stage.getWidth() / 2.8; 
+        double y_offset = stage.getHeight() / 2.25;
+        alert.setX(stage.getX() + x_offset);
+        alert.setY(stage.getY() + y_offset);
         alert.showAndWait().filter(response -> response == ButtonType.OK);
     }
     
@@ -631,7 +634,13 @@ public class StrategoView extends Application implements Observer {
         // Requesting that controller update the model (this will trigger an update() to the StrategoView)
         sentSetup = true;
         controller.setBoard(colorInt);
-                
+        
+        // making middle strip dropable
+        for(int i = SETUP_INDEX_START - 20; i < SETUP_INDEX_START; i++) {
+            PieceView pv = (PieceView) board.getChildren().get(i);
+            pv.setDropEnabled(true);
+        }
+        
         //TODO need to coordinate server/client setup completion before next
         //TODO after setup stuff
     }
@@ -805,6 +814,25 @@ public class StrategoView extends Application implements Observer {
     }
     
     /**
+     * <ul><b><i>setOpponentDropable</i></b></ul>
+     * <ul><ul><p><code>private void setOpponentDropable (boolean isDropable) </code></p></ul>
+     *
+     * Sets the ability to drag and drop on the opponent's squares to the given boolean value.
+     * 
+     * <p>The opponents squares are the top four rows of the board.
+     *
+     * @param isDropable - true to enable dropping, false to disable dropping
+     * 
+     * @author Kristopher Rangel
+     */
+    private void setOpponentDropable(boolean isDropable) {
+        for(int i = 0; i < 40; i++) {
+            PieceView pv = (PieceView) board.getChildren().get(i);
+            pv.setDropEnabled(isDropable);
+        }
+    }
+    
+    /**
      * <ul><b><i>update</i></b></ul>
      * <ul><ul><p><code> public void update (Observable o, Object arg) </code></p></ul>
      *
@@ -836,15 +864,22 @@ public class StrategoView extends Application implements Observer {
                     PieceView pv = (PieceView) e;
                     pv.setDropEnabled(true);
                 });
-            }
-            if (color != colorInt) // setup recieved
+            }           
+            
+            if (color != colorInt) { // setup recieved
             	recvOtherSetup = true;
-
+            	// Disabling drop on opponents squares
+                setOpponentDropable(false);	
+            }
+            	
             if (recvOtherSetup && sentSetup)
             {
             	// proceed to 'battle phase'
-            	//TODO: alert about battle beginning?
+            	//TODO: alert about battle beginning
+                showAlert(AlertType.INFORMATION, "The game has started!");
+                hideTimer();
             	setupEnabled = false;
+                setOpponentDropable(true);
             	if (isServer)
             	{
             		// enable server board

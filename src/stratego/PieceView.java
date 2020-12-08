@@ -245,6 +245,12 @@ public class PieceView extends VBox {
                 if(fromBoard) {
                     
                     // requesting movement from controller
+                    if(Piece.isMoveValid(fromRow, fromCol, toRow, toCol, PieceView.convertPieceIndexToType(fromPieceIndex))) {
+                        // piece will move
+                        //this.show();
+                        //controller.getPosition(fromRow, fromCol);
+                        
+                    }
                     moved = controller.movePiece(fromRow, fromCol, toRow, toCol);
                     
                     
