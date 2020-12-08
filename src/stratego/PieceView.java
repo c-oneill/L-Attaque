@@ -59,6 +59,9 @@ public class PieceView extends VBox {
     private int row;
     private int col;
     
+    private boolean isVisible;
+    private Color playerColor;
+    
     private StrategoController controller;
     
     /**
@@ -81,10 +84,10 @@ public class PieceView extends VBox {
         this.borderWidth = borderWidth;
         this.setPrefHeight(SIZE);
         this.setPrefWidth(SIZE);
-        
+        this.playerColor = Color.TRANSPARENT;
         dragEnabled = true;
         dropEnabled = true;
-        
+        isVisible = true;
         this.controller = controller;
         this.label = new Label();
         setPieceType();
@@ -230,6 +233,8 @@ public class PieceView extends VBox {
                 
                 String rawInfo = db.getString();
                 String[] info = rawInfo.split(" ");
+                this.playerColor = Color.web(info[5]);
+                isVisible = (info[6].substring(0, 4).equals("true"));
                 int fromPieceIndex = Integer.parseInt(info[0]);
                 int fromRow = StrategoView.translate(Integer.parseInt(info[1]));
                 int fromCol = StrategoView.translate(Integer.parseInt(info[2]));
@@ -311,11 +316,13 @@ public class PieceView extends VBox {
         }else if(pieceIndex == -1) { // empty land
             this.color = LAND;
             dragEnabled = false;
+        }else if(!isVisible){
+            this.color = playerColor;
         }else {
-            this.color = TRANSPARENT;   
+            this.color = Color.TRANSPARENT;
         }
         
-        if(pieceIndex >= 0 && pieceIndex < RANK_IMAGES.length) {
+        if(isVisible && pieceIndex >= 0 && pieceIndex < RANK_IMAGES.length) {
             String imagePath = RANK_IMAGES[pieceIndex];
             BackgroundImage bgi = new BackgroundImage(new Image(imagePath, SIZE, SIZE, true, true), 
                     BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
@@ -472,11 +479,14 @@ public class PieceView extends VBox {
      * @author Kristopher Rangel
      */
     public String toString() {
-        String str = String.valueOf(pieceIndex) + " " 
-                   + String.valueOf(row) + " "
-                   + String.valueOf(col) + " "
-                   + String.valueOf(borderColor) + " "
-                   + String.valueOf(isOnBoard);
+        String str = String.valueOf(pieceIndex) + " "   // 0
+                   + String.valueOf(row) + " "          // 1
+                   + String.valueOf(col) + " "          // 2
+                   + String.valueOf(borderColor) + " "  // 3
+                   + String.valueOf(isOnBoard) + " "    // 4
+                   + String.valueOf(playerColor) + " "  // 5
+                   + String.valueOf(isVisible);         // 6
+        
         return str;
     }
     
@@ -557,8 +567,47 @@ public class PieceView extends VBox {
      * @author Kristopher Rangel
      */
     public void update(Piece piece) {
+        // updating the color of the piece in this square
+        this.playerColor = Color.BLACK;
+        if(piece.color() == 1)      { this.playerColor = Color.BLUE; }
+        else if(piece.color() == 2) { this.playerColor = Color.RED; }
+        // if this piece is the player's color, show it
+        if(StrategoView.getPlayerColor() == this.playerColor) {show();}
+        
         this.pieceIndex = convertPieceTypeToIndex(piece.type);
         this.piece = piece.type;
         initBackground(convertPieceTypeToIndex(this.piece));
+    }
+    
+    public void setPlayerColor(Color c) {
+        this.playerColor = c;
+    }
+    
+    public void setIsVisible(boolean isVisible) {
+        this.isVisible = isVisible;
+    }
+    
+    public boolean getIsVisible() {
+        return this.isVisible;
+    }
+    
+    public boolean isVisible(Color c) {
+        if(this.playerColor == c) 
+            isVisible = true;
+        else
+            isVisible = false;       
+        return isVisible;
+    }
+    
+    public void hide() {
+        isVisible = false;
+        this.saveBorderColor(Color.BLACK);
+        this.setBorderColor(Color.BLACK);
+    }
+    
+    public void show() {
+        isVisible = true;
+        this.saveBorderColor(playerColor);
+        this.setBorderColor(playerColor);
     }
 }

@@ -77,7 +77,7 @@ public class StrategoView extends Application implements Observer {
     private Timer timer;
     private Button setupDone;
     
-    private Color playerColor;
+    private static Color playerColor;
     private int colorInt;
     
     private static ArrayList<Label> countLabels;
@@ -253,6 +253,7 @@ public class StrategoView extends Application implements Observer {
                 square.setDragEnabled(false);
                 square.setDropEnabled(false);
                 square.setIsOnBoard(true);
+                square.setIsVisible(false);
                 
                 // adding square to board
                 square.setPosition(row, col);
@@ -297,6 +298,8 @@ public class StrategoView extends Application implements Observer {
             for(int col = 0; col < PIECES_COLS; col++) {
                 PieceView pv = new PieceView(pieceIndex, BOARD_GRID_COLOR);
                 pv.setDropEnabled(false); // can't drop pieces onto the bottom piece tray
+                pv.setPlayerColor(playerColor);
+                pv.setIsVisible(true);
                 pieces.add(pv);
                 piecesBox.add(pv , col, row);
                 
@@ -502,12 +505,6 @@ public class StrategoView extends Application implements Observer {
         setupEnabled = true;
         changePieceBoxColor(playerColor);
         
-//        // Enabling drop on setup area of board
-//        List<Node> setupArea = board.getChildren().subList(SETUP_INDEX_START, SETUP_INDEX_END);
-//        setupArea.forEach( e -> {
-//            PieceView pv = (PieceView) e;
-//            pv.setDropEnabled(true);
-//        } );
         
         // Enabling drag on the entire board
         board.getChildren().iterator().forEachRemaining(e -> {
@@ -610,9 +607,11 @@ public class StrategoView extends Application implements Observer {
                 pv.update(p);
                 
                 // setting border color (no piece is black, else colored by piece color)
-                Color c = Color.BLACK;
-                if(p.color() == 1) { c = Color.BLUE; }
-                else if (p.color() == 2) { c = Color.RED; } 
+                Color c = Color.BLACK;                              // could maybe pull color selection into setBorderColor
+                if(pv.isVisible(playerColor)) {
+                    if(p.color() == 1) { c = Color.BLUE; }
+                    else if (p.color() == 2) { c = Color.RED; }
+                }
                 pv.setBorderColor(c);
                 pv.saveBorderColor(c);
                 
@@ -655,8 +654,10 @@ public class StrategoView extends Application implements Observer {
         
         // setting border color (no piece is black, else colored by piece color)
         Color c = Color.BLACK;
-        if(p.color() == 1) { c = Color.BLUE; }
-        else if (p.color() == 2) { c = Color.RED; } 
+        if(pv.isVisible(playerColor)) {
+            if(p.color() == 1) { c = Color.BLUE; }
+            else if (p.color() == 2) { c = Color.RED; }
+        }
         pv.setBorderColor(c);
         pv.saveBorderColor(c);
     }
@@ -707,7 +708,7 @@ public class StrategoView extends Application implements Observer {
     
     /**
      * <ul><b><i>translate</i></b></ul>
-     * <ul><ul><p><code> int translate () </code></p></ul>
+     * <ul><ul><p><code>protected int translate (int rowOrColumn) </code></p></ul>
      *
      * Translates rows or columns from the {@link StrategoModel} into
      * rows or columns for display on the client. A server uses the same
@@ -718,8 +719,8 @@ public class StrategoView extends Application implements Observer {
      * 
      * @author Kristopher Rangel
      */
-    protected static int translate(int rowOrColum) {
-        int result = rowOrColum;
+    protected static int translate(int rowOrColumn) {
+        int result = rowOrColumn;
         if(!isServer) { result = 9 - result; }
         return result;
     }
@@ -800,5 +801,9 @@ public class StrategoView extends Application implements Observer {
         	}
         }
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
+    }
+    
+    public static Color getPlayerColor() {
+        return playerColor;
     }
 }
