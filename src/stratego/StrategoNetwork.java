@@ -143,7 +143,6 @@ public class StrategoNetwork {
         }
         return hasNoException;
     }
-    
 
     /**
      * <ul><b><i>writeStartupMessage</i></b></ul>

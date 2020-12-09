@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import stratego.Piece.PieceType;
 
@@ -31,7 +32,6 @@ import stratego.Piece.PieceType;
 public class StrategoController 
 {
 	private StrategoModel model;
-	
 	private StrategoNetwork network;
 	
 	private PieceType[][] blueInitialSetup;
@@ -55,10 +55,25 @@ public class StrategoController
 		resetAvailible(Piece.RED);
 	}
 	
+//	public void startChat(Node node)
+//	{
+//		Thread chatRecvThread = new Thread(() -> 
+//    	{
+//    		ChatMessage chatMessage = network.readChatMessage();
+//
+//        	
+//    		Platform.runLater(() -> 
+//    		{
+//    			// appending to chatBox pushed until later in the main thread
+//    		});
+//    	});
+//		chatRecvThread.start();
+//	}
+	
 	/**
 	 * Reset HasMaps of piecees availible for placement to include all 40
 	 * pieces.
-	 * @param color color of piece set resesting
+	 * @param color color of piece set reseting
 	 */
 	private void resetAvailible(int color)
 	{
