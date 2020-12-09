@@ -77,6 +77,7 @@ public class StrategoNetwork {
         }catch(IOException e) {
             hasNoException = false;
             errorMessage = "IOException occurred while trying to establish server.";
+            e.printStackTrace(); //TODO: remove
         }
         return hasNoException;
     }
@@ -108,6 +109,7 @@ public class StrategoNetwork {
         }catch(IOException e) {
             hasNoException = false;
             errorMessage = "IOException occurred while trying to establish connection to server.";
+            e.printStackTrace(); //TODO: remove
         }
         return hasNoException;
     }

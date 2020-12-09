@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import stratego.Piece.PieceType;
 
@@ -178,20 +178,31 @@ public class StrategoController
     /**
      * Initiates continuous listening for {@link ChatMessage} on the chat 
      * network input stream.
-     * @param node the node to append messages to
+     * @param chatDisplay chat display
      */
-    public void initiateChatListening(Node node)
+    public void initiateChatListening(Label chatDisplay)
     {
+    	chatListening.set(true);
+    	System.out.println("initiating chat");
+    	System.out.println("chatListening: " + chatListening.get());
 		Thread chatRecvThread = new Thread(() -> 
     	{
     		while(chatListening.get())
     		{
+    			System.out.println("initiate chat while loop");
         		ChatMessage chatMessage = chatNetwork.readChatMessage();
-
+        		if (chatMessage == null) { return; }
+        		System.out.println("chat message recieved");
+        		final String chatText = chatMessage.getMessage();
+        		final int color = chatMessage.getColor();
+        		
         		Platform.runLater(() -> 
         		{
-        			// appending to chatBox pushed until later in the main thread
-        			//TODO
+        			// appending to chatDisplay pushed until later in the main thread
+        			String colorString = (color == 1) ? "BLUE" : "RED ";
+        	        String currentText = chatDisplay.getText();
+        	        currentText = currentText + "\n" + colorString +" >> " + chatText;
+        	        chatDisplay.setText(currentText);
         		});
     		}
 
@@ -206,6 +217,7 @@ public class StrategoController
      */
     public void writeChatMessage(String msg, int color)
     {
+    	System.out.println("chat message written");
     	chatNetwork.writeChatMessage(new ChatMessage(msg, color));
     }
     
@@ -219,6 +231,7 @@ public class StrategoController
     	Thread recvSetupThread = new Thread(() -> 
     	{
     		BoardSetupMessage recvMessage = gameNetwork.readStartupMessage();
+    		if (recvMessage == null) { return; }
     		
     		PieceType[][] otherInitialSetup =  recvMessage.getInitialSetup();
         	int color = recvMessage.getColor();

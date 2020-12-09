@@ -192,7 +192,6 @@ public class StrategoView extends Application implements Observer {
     {
     	init();
     	stage.setScene(new Scene(window));
-    	//stage.show();
     }
     
     public void stop() {
@@ -218,6 +217,8 @@ public class StrategoView extends Application implements Observer {
         chatEntry = new TextField();
         chatEntry.setOnKeyPressed(e -> {
             if(e.getCode() == KeyCode.ENTER) {
+            	System.out.println("chat sending");
+            	addChat();
                 sendChat();
             }
         });
@@ -495,12 +496,11 @@ public class StrategoView extends Application implements Observer {
                 colorInt = Piece.BLUE;
             }
             
-            startNewGame(server, port);
             startNewChat(server, 4001); //TODO: add port2 textfield to new gamemenu
+            //startNewGame(server, port);
         }
  
     }
-    
 
     /**
      * <ul><b><i>startNewGame</i></b></ul>
@@ -570,8 +570,8 @@ public class StrategoView extends Application implements Observer {
         	showAlert(AlertType.ERROR, controller.getChatNetworkError());
         	return;
     	}
-        
-        //TODO: call continuous listening method in controller
+        //call continuous listening method in controller
+        controller.initiateChatListening(chatDisplay);
     }
     
     /**
@@ -964,21 +964,21 @@ public class StrategoView extends Application implements Observer {
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
     }
     
-
     /**
      * <ul><b><i>addChat</i></b></ul>
      * <ul><ul><p><code>private void addChat (String chatText, int playerColor) </code></p></ul>
      *
-     * Adds the given line to the chat display, prefixed by the given player.
-     *
-     * @param chatText - the String to add to the chat display
-     * @param playerColor - the integer representing the player (Piece.BLUE or Piece.RED)
+     * Adds the last entered line to the chat display, prefixed by the given 
+     * player.
      * 
      * @author Kristopher Rangel
      */
-    private void addChat(String chatText, int playerColor) {
+    private void addChat() {
         // usage:   addChat("Chat line from blue player.", Piece.BLUE);
         // usage:   addChat("Chat line from red player.", Piece.RED);
+    	String chatText = chatEntry.getText();
+    	int playerColor = colorInt;
+    	
         String colorString = (playerColor == 1) ? "BLUE" : "RED ";
         String currentText = chatDisplay.getText();
         currentText = currentText + "\n" + colorString +" >> " + chatText;
@@ -998,10 +998,8 @@ public class StrategoView extends Application implements Observer {
         chatEntry.setText("");
         
         System.out.println(chatText);
-        
-        //TODO do send chatText
+        controller.writeChatMessage(chatText, colorInt);
     }
-    
     
     /**
      * <ul><b><i>getPlayerColor</i></b></ul>
