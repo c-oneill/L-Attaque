@@ -59,7 +59,7 @@ public class StrategoController
 		resetAvailible(Piece.BLUE);
 		resetAvailible(Piece.RED);
 		
-		chatListening.set(true);
+		chatListening = new AtomicBoolean(true);
 	}
 	
 	/**

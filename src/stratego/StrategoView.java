@@ -488,7 +488,7 @@ public class StrategoView extends Application implements Observer {
             }
             
             startNewGame(server, port);
-            //TODO: call startNewChat(server, port2);
+            startNewChat(server, 4001); //TODO: add port2 textfield to new gamemenu
         }
  
     }
