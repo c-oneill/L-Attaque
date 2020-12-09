@@ -213,21 +213,46 @@ public class StrategoController
     {
     	Thread recvSetupThread = new Thread(() -> 
     	{
-    		BoardSetupMessage recvMessage = network.readStartupMessage();
+    		Object recvMessage = network.readStartupMessage();
     		if (recvMessage == null) { return; }
     		
-    		PieceType[][] otherInitialSetup =  recvMessage.getInitialSetup();
-        	int color = recvMessage.getColor();
-        	
-        	for (int row = 0; row < 4; row++)
-    			for (int col = 0; col < 10; col++)
-    				addToSetup(row, col, otherInitialSetup[row][col], color);
-        	
-    		Platform.runLater(() -> 
+    		// recieved a null message to for user requested game over
+    		if (recvMessage instanceof SinglePositionMessage)
     		{
-    			// model/view update pushed until later in the main thread
-            	setOtherPlayerBoard(color);
-    		});
+    			SinglePositionMessage msg = (SinglePositionMessage) recvMessage;
+        		final int row1 = msg.getRow();
+        		final int col1 = msg.getCol();
+    			// game over message from other user
+            	if (row1 == -1 && col1 == -1)
+            	{
+            		System.out.println("recieved game over message 1");
+            		Platform.runLater(() -> 
+            		{
+            			System.out.println("recieved game over message 2");
+            			model.setPosition(row1, col1, null);
+            		});
+            		return;
+            	}
+    		} 
+    		// recieved a BoardSetupMessage
+    		else if (recvMessage instanceof BoardSetupMessage)
+    		{
+    			BoardSetupMessage msg = (BoardSetupMessage) recvMessage;
+    			PieceType[][] otherInitialSetup =  msg.getInitialSetup();
+            	int color = msg.getColor();
+            	
+            	for (int row = 0; row < 4; row++)
+        			for (int col = 0; col < 10; col++)
+        				addToSetup(row, col, otherInitialSetup[row][col], color);
+            	
+        		Platform.runLater(() -> 
+        		{
+        			// model/view update pushed until later in the main thread
+                	setOtherPlayerBoard(color);
+        		});
+    		}
+    		
+    		
     	});
     	recvSetupThread.start();
     }
