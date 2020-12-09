@@ -34,36 +34,41 @@ import javafx.beans.InvalidationListener;
 
 public class StrategoView extends Application implements Observer {
 
+    // Debug
     protected static final boolean ENABLE_INPUT_DEBUG = false;
     protected static final boolean ENABLE_CONSOLE_DEBUG = false;
     
+    // Board defaults
     private final Color BACKGROUND_COLOR = Color.WHITE;
     private final Color BOARD_GRID_COLOR = Color.BLACK;
     private final int BOARD_SIZE = 10;
     private final int SETUP_START_ROW = 6;
     private final int SETUP_INDEX_START = 60;
     private final int SETUP_INDEX_END = 100;
-
-    public static double STANDARD;
-    
-    private double WINDOW_HEIGHT;
-    private double WINDOW_WIDTH;
-    private double CHATBOX_WIDTH;
-    
     private double VGAP_PADDING;
     private double HGAP_PADDING;
     private double INSETS_PADDING;
     private int GRID_BORDERS;
+
+    // Window
+    public static double STANDARD;
+    private double WINDOW_HEIGHT;
+    private double WINDOW_WIDTH;
+    private double CHATBOX_WIDTH;
     
+    // Timer
     private double CLOCK_WIDTH;
     private double CLOCK_HEIGHT;
     private double SETUP_DONE_WIDTH;
     private double TIMER_FONT_SIZE;
-    
-    private final int PIECES_ROWS = 12;
-    private final int PIECES_COLS = 2;
     private final int COUNT_FONT_SIZE = 14;
     private int DEFAULT_TIME = 120000; // 2 mins
+    
+    // 'Pieces Tray'
+    private final int PIECES_ROWS = 12;
+    private final int PIECES_COLS = 2;
+    
+    // Main UI elements
     private Stage stage;
     private BorderPane window;
     private GridPane board;
@@ -77,16 +82,28 @@ public class StrategoView extends Application implements Observer {
     private StrategoController controller;
     private Timer timer;
     private Button setupDone;
+    private static ArrayList<Label> countLabels;
+    private static ArrayList<PieceView> pieces; // pieces for setup
     
+    // Chat style
+    private String chatStyle =                   
+            "-fx-border-color: green;"
+            + "-fx-font-weight: bold;"
+            + "-fx-font-size: 16;";
+    private String chatBGStyle = "";
+    private Color chatBGColor;
+    private Color chatTextColor;
+    
+    // Player color information
     private static Color playerColor;
     private int colorInt;
     
-    private static ArrayList<Label> countLabels;
-    private static ArrayList<PieceView> pieces; // pieces for setup
+    // Input control
     public static boolean setupEnabled;
     private boolean inputEnabled;
-    private static boolean isServer;
     
+    // Networking
+    private static boolean isServer;
     private boolean recvOtherSetup = false;
     private boolean sentSetup = false;
     private int msgRecvCount = 0;
@@ -188,23 +205,53 @@ public class StrategoView extends Application implements Observer {
         window.setLeft(piecesBox);
     }
     
+    /**
+     * <ul><b><i>reInit</i></b></ul>
+     * <ul><ul><p><code>private void reInit () </code></p></ul>
+     *
+     * Reinitializes the scene.
+     *
+     * @author Caroline O'Neill
+     */
     private void reInit()
     {
     	init();
     	stage.setScene(new Scene(window));
     }
     
+    /**
+     * <ul><b><i>stop</i></b></ul>
+     * <ul><ul><p><code>public void stop () </code></p></ul>
+     *
+     * Performs final actions upon application close.
+     * 
+     * @author Kristopher Rangel
+     *
+     */
     public void stop() {
     	// cleanup
         controller.closeNetwork();
-        //controller.closeChatNetwork();
         
         hideTimer();
         if(timer != null)
             timer.stopTimer();
     }
     
+    /**
+     * <ul><b><i>initChatBox</i></b></ul>
+     * <ul><ul><p><code>private void initChatBox () </code></p></ul>
+     *
+     * Initializes the chat box element and sub-elements.
+     * 
+     * @author Kristopher Rangel
+     *
+     */
     private void initChatBox() {
+        // Setting default chat colors
+        chatBGColor = Color.AQUAMARINE;
+        chatTextColor = Color.BLACK;
+        
+        // Creating chat title box
         VBox chatTitleBox = new VBox();
         Label chatTitle = new Label("Chat Display");
         chatTitleBox.getChildren().add(chatTitle);
@@ -216,25 +263,16 @@ public class StrategoView extends Application implements Observer {
                 + "-fx-background-color: #9aeb8a;"
                 ); 
         
-        
+        // Main chat display box
         chatBox = new VBox();
         chatBox.setPrefWidth(CHATBOX_WIDTH);
         
-        // style options for chat entry and display
-        chatBox.styleProperty().set(
-                  "-fx-border-color: green;"
-                + "-fx-background-color: aquamarine;"
-                + "-fx-font-weight: bold;"
-                + "-fx-font-size: 16;"
-                
-                ); 
         chatDisplay = new Label();
-        //chatDisplay.setEditable(false);
         chatDisplay.setWrapText(true);
         chatDisplay.setPrefHeight(WINDOW_HEIGHT);
         chatDisplay.setAlignment(Pos.TOP_LEFT);
-        //TODO set style (i.e. font etc.)
         chatEntry = new TextField();
+        // setting on 'enter' pressed event for chat entry
         chatEntry.setOnKeyPressed(e -> {
             if(e.getCode() == KeyCode.ENTER) {
             	System.out.println("chat sending");
@@ -245,6 +283,53 @@ public class StrategoView extends Application implements Observer {
         
         chatBox.getChildren().addAll(chatTitleBox, chatDisplay, chatEntry);
         VBox.setVgrow(chatEntry, Priority.ALWAYS);
+        
+        // Setting chat styles
+        setChatTextColor(chatTextColor);
+        setChatBGColor(chatBGColor);
+    }
+    
+    /**
+     * <ul><b><i>setChatBGColor</i></b></ul>
+     * <ul><ul><p><code>private void setChatBGColor (Color c) </code></p></ul>
+     *
+     * Sets the chat display background color.
+     *
+     * @param c - {@link Color} to set the background to
+     * 
+     * @author Kristopher Rangel
+     */
+    private void setChatBGColor(Color c) {
+        chatBGColor = c;
+        String colorStr = String.valueOf(c);
+        if(colorStr.length() > 8){
+            colorStr = "#" + colorStr.substring(2,8);
+        }
+        chatBGStyle = "-fx-background-color: "+ colorStr + ";";
+        chatBox.styleProperty().set(chatStyle + chatBGStyle);
+    }
+    
+    /**
+     * <ul><b><i>setChatTextColor</i></b></ul>
+     * <ul><ul><p><code> void setChatTextColor () </code></p></ul>
+     *
+     * Sets the text font color for the chat display and chat entry.
+     *
+     * @param c - {@link Color} to set the text font to
+     * 
+     * @author Kristopher Rangel
+     */
+    private void setChatTextColor(Color c) {
+        chatTextColor = c;
+        String colorStr = String.valueOf(c);
+        if(colorStr.length() > 8){
+            colorStr = "#" + colorStr.substring(2,8);
+        }
+        String chatTextStyle = "-fx-text-fill: "+ colorStr + ";";
+        
+        // updating the display and entry
+        chatDisplay.styleProperty().set(chatTextStyle);
+        chatEntry.styleProperty().set(chatTextStyle);
     }
     
     /**
@@ -257,13 +342,42 @@ public class StrategoView extends Application implements Observer {
      */
     private void initMenuBar() {
         menuBar = new MenuBar();
+        
         Menu fileMenu = new Menu("File");
         newGame = new MenuItem("New Game");
         newGame.setOnAction(e -> { getNewGameOptions(); });
         MenuItem endGame = new MenuItem("End Game");
         endGame.setOnAction(e -> { gameOver(Piece.NONE, true); }); 
         fileMenu.getItems().addAll(newGame, endGame);
-        menuBar.getMenus().add(fileMenu);
+        
+        Menu optionsMenu = new Menu("Options");
+        MenuItem chatColors = new MenuItem("Chat Colors...");
+        chatColors.setOnAction(e -> { setChatColors(); });
+        optionsMenu.getItems().add(chatColors);
+        
+        menuBar.getMenus().addAll(fileMenu, optionsMenu);
+    }
+    
+    /**
+     * <ul><b><i>setChatColors</i></b></ul>
+     * <ul><ul><p><code>private void setChatColors () </code></p></ul>
+     *
+     * Displays the color picker dialog box for the user to select chat colors. After the
+     * user hits 'OK', updates the colors.
+     * 
+     * @author Kristopher Rangel
+     *
+     */
+    private void setChatColors() {
+        ChatColorPicker cp = new ChatColorPicker(chatTextColor, chatBGColor);
+        cp.setX(stage.getX());
+        cp.setY(stage.getY());
+        cp.showAndWait();
+        
+        if(cp.userHitOK()) {
+            setChatBGColor(cp.getBgColor());
+            setChatTextColor(cp.getTextColor());
+        }
     }
     
     /**
@@ -369,6 +483,16 @@ public class StrategoView extends Application implements Observer {
         }  
     }
 
+    /**
+     * <ul><b><i>changePieceBoxColor</i></b></ul>
+     * <ul><ul><p><code> void changePieceBoxColor () </code></p></ul>
+     *
+     * Changes the border color of the 'pieces tray'.
+     *
+     * @param borderColor - the {@link Color} to set the border to
+     * 
+     * @author Kristopher Rangel
+     */
     private void changePieceBoxColor(Color borderColor) {
         for(PieceView pv : pieces) {
             pv.setBorderColor(borderColor);
@@ -571,32 +695,7 @@ public class StrategoView extends Application implements Observer {
             PieceView pv = (PieceView) board.getChildren().get(i);
             pv.setDropEnabled(true);
         }
-    }
-    
-//    /**
-//     * This function starts a new chat with the options selected by the user.
-//     *
-//     * @param server - the hostname of the server
-//     * @param port - the port number
-//     *
-//     * @author Caroline O'Neill
-//     */
-//    private void startNewChat(String server, int port) 
-//    {
-//    	// if previous connection exists, close it
-//    	controller.closeChatNetwork(); 
-//    	
-//    	//setup network connection
-//        boolean hasConnectionError = controller.buildChatNetwork(isServer, server, port);
-//        
-//        if (hasConnectionError) 
-//        {
-//        	showAlert(AlertType.ERROR, controller.getChatNetworkError());
-//        	return;
-//    	}
-//        //call continuous listening method in controller
-//        controller.initiateChatListening(chatDisplay);
-//    }
+    }  
     
     /**
      * Shows an alert of the given type with the message passed.

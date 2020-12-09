@@ -33,8 +33,8 @@ public class StrategoNewGameMenu extends Stage{
     private boolean hitOK;
     
     /**
-     * <ul><b><i>Connect4NetworkSetup</i></b></ul>
-     * <ul><ul><p><code>public Connect4NetworkSetup ()</code></p></ul>
+     * <ul><b><i>StrategoNewGameMenu</i></b></ul>
+     * <ul><ul><p><code>public StrategoNewGameMenu ()</code></p></ul>
      * 
      * Constructor.
      * 
@@ -49,8 +49,8 @@ public class StrategoNewGameMenu extends Stage{
     }
         
     /**
-     * <ul><b><i>getCreateToggleRow</i></b></ul>
-     * <ul><ul><p><code>private HBox getCreateToggleRow () </code></p></ul>
+     * <ul><b><i>getCreateServerClientRow</i></b></ul>
+     * <ul><ul><p><code>private HBox getCreateServerClientRow () </code></p></ul>
      *
      * Sets up the 'Create:' row of the Network Setup options.
      * 
