@@ -205,10 +205,30 @@ public class StrategoView extends Application implements Observer {
     }
     
     private void initChatBox() {
+        VBox chatTitleBox = new VBox();
+        Label chatTitle = new Label("Chat Display");
+        chatTitleBox.getChildren().add(chatTitle);
+        // style options for chat title banner
+        chatTitleBox.styleProperty().set(
+                  "-fx-border-color: green; "
+                + "-fx-font: 20 Arial;" 
+                + "-fx-font-weight: bold;"
+                + "-fx-background-color: #9aeb8a;"
+                ); 
+        
+        
         chatBox = new VBox();
         chatBox.setPrefWidth(CHATBOX_WIDTH);
-        chatBox.styleProperty().set("-fx-border-color: green;"); // border
-        chatDisplay = new Label(">> This is the chat box.");
+        
+        // style options for chat entry and display
+        chatBox.styleProperty().set(
+                  "-fx-border-color: green;"
+                + "-fx-background-color: aquamarine;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 16;"
+                
+                ); 
+        chatDisplay = new Label();
         //chatDisplay.setEditable(false);
         chatDisplay.setWrapText(true);
         chatDisplay.setPrefHeight(WINDOW_HEIGHT);
@@ -223,7 +243,7 @@ public class StrategoView extends Application implements Observer {
             }
         });
         
-        chatBox.getChildren().addAll(chatDisplay, chatEntry);
+        chatBox.getChildren().addAll(chatTitleBox, chatDisplay, chatEntry);
         VBox.setVgrow(chatEntry, Priority.ALWAYS);
     }
     
