@@ -13,6 +13,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.input.KeyCode;
 import javafx.scene.text.Font;
 import javafx.scene.layout.*;
@@ -75,6 +76,7 @@ public class StrategoView extends Application implements Observer {
     private VBox chatBox;
     private MenuBar menuBar; 
     private MenuItem newGame;
+    ScrollPane chatScroller;
     private Label chatDisplay;
     private TextField chatEntry;
     private Label clockFace;
@@ -92,6 +94,10 @@ public class StrategoView extends Application implements Observer {
     private String chatBGStyle = "";
     private Color chatBGColor;
     private Color chatTextColor;
+    private double chatScrollerVValue;
+    private double chatScrollerCounter;
+    private double chatScrollerStep;
+    private final double CHATSCROLLER_START_SCROLLING = 0.095;
     
     // Player color information
     private static Color playerColor;
@@ -170,7 +176,7 @@ public class StrategoView extends Application implements Observer {
         
         WINDOW_HEIGHT = STANDARD * 825;
         WINDOW_WIDTH = STANDARD * 1100;
-        CHATBOX_WIDTH = STANDARD * 300;
+        CHATBOX_WIDTH = STANDARD * 245;
         
         VGAP_PADDING = STANDARD * 8;
         HGAP_PADDING = STANDARD * 8;
@@ -204,16 +210,12 @@ public class StrategoView extends Application implements Observer {
     }
     
     /**
-<<<<<<< HEAD
-     * Re-inittialize GUI.
-=======
      * <ul><b><i>reInit</i></b></ul>
      * <ul><ul><p><code>private void reInit () </code></p></ul>
      *
      * Reinitializes the scene.
      *
      * @author Caroline O'Neill
->>>>>>> refs/heads/view
      */
     private void reInit()
     {
@@ -222,9 +224,6 @@ public class StrategoView extends Application implements Observer {
     }
     
     /**
-<<<<<<< HEAD
-     * Stop GUI. Called on exiting program.
-=======
      * <ul><b><i>stop</i></b></ul>
      * <ul><ul><p><code>public void stop () </code></p></ul>
      *
@@ -232,7 +231,6 @@ public class StrategoView extends Application implements Observer {
      * 
      * @author Kristopher Rangel
      *
->>>>>>> refs/heads/view
      */
     public void stop() {
     	// cleanup
@@ -244,11 +242,8 @@ public class StrategoView extends Application implements Observer {
     }
     
     /**
-<<<<<<< HEAD
-     * Initialize chat box.
      * 
      * @author Kristopher Rangel
-=======
      * <ul><b><i>initChatBox</i></b></ul>
      * <ul><ul><p><code>private void initChatBox () </code></p></ul>
      *
@@ -256,7 +251,6 @@ public class StrategoView extends Application implements Observer {
      * 
      * @author Kristopher Rangel
      *
->>>>>>> refs/heads/view
      */
     private void initChatBox() {
         // Setting default chat colors
@@ -279,9 +273,10 @@ public class StrategoView extends Application implements Observer {
         chatBox = new VBox();
         chatBox.setPrefWidth(CHATBOX_WIDTH);
         
+        
         chatDisplay = new Label();
         chatDisplay.setWrapText(true);
-        chatDisplay.setPrefHeight(WINDOW_HEIGHT);
+        chatDisplay.setPrefHeight(WINDOW_HEIGHT * 10);
         chatDisplay.setAlignment(Pos.TOP_LEFT);
         chatEntry = new TextField();
         // setting on 'enter' pressed event for chat entry
@@ -293,7 +288,23 @@ public class StrategoView extends Application implements Observer {
             }
         });
         
-        chatBox.getChildren().addAll(chatTitleBox, chatDisplay, chatEntry);
+
+        chatScroller = new ScrollPane();
+        chatScrollerVValue = 0.0;
+        chatScrollerCounter = 0.0;
+        chatScrollerStep = 0.002205;
+        chatScroller.setContent(chatDisplay);
+        chatScroller.setOnScroll(e -> {
+            if(chatScroller.getVvalue() > chatScrollerVValue) {
+                chatScroller.setVvalue(chatScrollerVValue);
+            }
+            e.consume();
+        });
+        chatScroller.setVbarPolicy(ScrollBarPolicy.NEVER);
+        chatScroller.setFitToWidth(true);
+        
+        //chatBox.getChildren().addAll(chatTitleBox, chatDisplay, chatEntry);
+        chatBox.getChildren().addAll(chatTitleBox, chatScroller, chatEntry);
         VBox.setVgrow(chatEntry, Priority.ALWAYS);
         
         // Setting chat styles
@@ -319,6 +330,7 @@ public class StrategoView extends Application implements Observer {
         }
         chatBGStyle = "-fx-background-color: "+ colorStr + ";";
         chatBox.styleProperty().set(chatStyle + chatBGStyle);
+        chatScroller.styleProperty().set("-fx-background: " + colorStr + ";");
     }
     
     /**
@@ -447,9 +459,7 @@ public class StrategoView extends Application implements Observer {
     private void initPieces() {
         countLabels = new ArrayList<Label>();
         pieces = new ArrayList<PieceView>();
-        //String[] rank_images = {"ranks_flag.png","ranks_bomb.png", "ranks_1-spy.png", "ranks_2-scout.png",
-        //                        "ranks_3-Miner.png", "ranks_4-SGT.png", "ranks_5-LT.png", "ranks_6-CPT.png",
-        //                        "ranks_7-MAJ.png", "ranks_8-COL.png", "ranks_9-GEN.png", "ranks_10-Marshall.png"};
+        
         piecesBox = new GridPane();
         BackgroundFill bgfill = new BackgroundFill(BACKGROUND_COLOR, CornerRadii.EMPTY, Insets.EMPTY);
         Background bg = new Background(bgfill);
@@ -496,17 +506,14 @@ public class StrategoView extends Application implements Observer {
     }
 
     /**
-<<<<<<< HEAD
      * Change piece box color.
      * @param borderColor border color
-=======
      * <ul><b><i>changePieceBoxColor</i></b></ul>
      * <ul><ul><p><code> void changePieceBoxColor () </code></p></ul>
      *
      * Changes the border color of the 'pieces tray'.
      *
      * @param borderColor - the {@link Color} to set the border to
->>>>>>> refs/heads/view
      * 
      * @author Kristopher Rangel
      */
@@ -1114,6 +1121,16 @@ public class StrategoView extends Application implements Observer {
         String currentText = chatDisplay.getText();
         currentText = currentText + "\n" + colorString +" >> " + chatText;
         chatDisplay.setText(currentText);
+        
+        // chat scrolling
+        chatScrollerCounter += chatScrollerStep;
+        
+        if(chatScrollerCounter >= CHATSCROLLER_START_SCROLLING) { // allows for a 'buffer' before auto-scrolling
+            chatScrollerVValue += chatScrollerStep;
+            chatScroller.setVvalue(chatScrollerVValue);
+        }else { // resets to top
+            chatScroller.setVvalue(0.0);
+        }
     }
     
     /**
