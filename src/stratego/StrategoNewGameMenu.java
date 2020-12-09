@@ -20,7 +20,6 @@ import javafx.geometry.*;
  */
 public class StrategoNewGameMenu extends Stage{
 
-    
     private final int PADDING = 10; 
     private final String DEFAULT_SERVER = "localhost";
     private final String DEFAULT_PORT = "4000";

@@ -115,6 +115,8 @@ public class Piece implements Serializable
 	 * @param dstCol destination column of piece
 	 * @param piece piece being moved
 	 * @return true if a valid move, false otherwise
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public static boolean isMoveValid(int srcRow, int srcCol, int dstRow, int dstCol, PieceType pieceType)
 	{
@@ -160,6 +162,8 @@ public class Piece implements Serializable
 	 * @param p2 second piece
 	 * @return if 0 both removed, if 1 p1 remains, if 2 p2 remains, returns -1
 	 * if its an invalid comparison.
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public static int whoWins(Piece attacker, Piece defender)
 	{
@@ -231,7 +235,7 @@ public class Piece implements Serializable
 	}
 	
 	/**
-	 * Gives a string representation of the Piece (its level)
+	 * Gives a string representation of the Piece (its level).
 	 */
 	@Override
 	public String toString()

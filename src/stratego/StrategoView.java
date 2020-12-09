@@ -31,7 +31,6 @@ import javafx.beans.InvalidationListener;
  * @author Kristopher Rangel
  *
  */
-
 public class StrategoView extends Application implements Observer {
 
     protected static final boolean ENABLE_INPUT_DEBUG = false;
@@ -121,16 +120,14 @@ public class StrategoView extends Application implements Observer {
             stage.setScene(scene);
             stage.show();
             
-            
             this.stage = stage;
 
-        }catch(Exception e) {
+        } catch(Exception e) {
             if(ENABLE_CONSOLE_DEBUG) {
                 System.out.println("Error with javafx while initializing the UI.");
                 e.printStackTrace();
             }
         }
-        
     }
     
     /**
@@ -143,6 +140,7 @@ public class StrategoView extends Application implements Observer {
      *<p>This method initializes the element of the scene.</p>
      *
      * @author Kristopher Rangel
+     * @author Caroline O'Neill
      *
      */
     public void init() {
@@ -188,22 +186,32 @@ public class StrategoView extends Application implements Observer {
         window.setLeft(piecesBox);
     }
     
+    /**
+     * Re-inittialize GUI.
+     */
     private void reInit()
     {
     	init();
     	stage.setScene(new Scene(window));
     }
     
+    /**
+     * Stop GUI. Called on exiting program.
+     */
     public void stop() {
     	// cleanup
         controller.closeNetwork();
-        //controller.closeChatNetwork();
         
         hideTimer();
         if(timer != null)
             timer.stopTimer();
     }
     
+    /**
+     * Initialize chat box.
+     * 
+     * @author Kristopher Rangel
+     */
     private void initChatBox() {
         chatBox = new VBox();
         chatBox.setPrefWidth(CHATBOX_WIDTH);
@@ -222,7 +230,6 @@ public class StrategoView extends Application implements Observer {
                 sendChat();
             }
         });
-        
         chatBox.getChildren().addAll(chatDisplay, chatEntry);
         VBox.setVgrow(chatEntry, Priority.ALWAYS);
     }
@@ -349,6 +356,12 @@ public class StrategoView extends Application implements Observer {
         }  
     }
 
+    /**
+     * Change piece box color.
+     * @param borderColor border color
+     * 
+     * @author Kristopher Rangel
+     */
     private void changePieceBoxColor(Color borderColor) {
         for(PieceView pv : pieces) {
             pv.setBorderColor(borderColor);
@@ -411,12 +424,11 @@ public class StrategoView extends Application implements Observer {
         setupDone.setPrefWidth(SETUP_DONE_WIDTH);
         setupDone.autosize();
         setupDone.setAlignment(Pos.CENTER);
-        setupDone.setOnAction(e -> { 
-
-            //TODO let timer run until other player is done also
+        setupDone.setOnAction(e -> 
+        { 
             timer.stopTimer();            
             endSetup();
-            });
+        });
         piecesBox.add(setupDone, 0, row + 2, span, span);
     }
     
@@ -491,7 +503,7 @@ public class StrategoView extends Application implements Observer {
             if(isServer) {
                 playerColor = Color.RED;
                 colorInt = Piece.RED;
-            }else {
+            } else {
                 playerColor = Color.BLUE;
                 colorInt = Piece.BLUE;
             }
@@ -501,7 +513,6 @@ public class StrategoView extends Application implements Observer {
             
             startNewGame(server, port);
         }
- 
     }
 
     /**
@@ -552,31 +563,6 @@ public class StrategoView extends Application implements Observer {
             pv.setDropEnabled(true);
         }
     }
-    
-//    /**
-//     * This function starts a new chat with the options selected by the user.
-//     *
-//     * @param server - the hostname of the server
-//     * @param port - the port number
-//     *
-//     * @author Caroline O'Neill
-//     */
-//    private void startNewChat(String server, int port) 
-//    {
-//    	// if previous connection exists, close it
-//    	controller.closeChatNetwork(); 
-//    	
-//    	//setup network connection
-//        boolean hasConnectionError = controller.buildChatNetwork(isServer, server, port);
-//        
-//        if (hasConnectionError) 
-//        {
-//        	showAlert(AlertType.ERROR, controller.getChatNetworkError());
-//        	return;
-//    	}
-//        //call continuous listening method in controller
-//        controller.initiateChatListening(chatDisplay);
-//    }
     
     /**
      * Shows an alert of the given type with the message passed.
@@ -653,9 +639,7 @@ public class StrategoView extends Application implements Observer {
         for(int i = SETUP_INDEX_START - 20; i < SETUP_INDEX_START; i++) {
             PieceView pv = (PieceView) board.getChildren().get(i);
             pv.setDropEnabled(true);
-        }
-        
-        //TODO need to coordinate server/client setup completion before next
+        }        
     }
     
     /**
@@ -685,9 +669,7 @@ public class StrategoView extends Application implements Observer {
     		msg = "You lost!";
 
     	showAlert(AlertType.INFORMATION, msg);
-    	
     	controller.closeNetwork();
-    	//controller.closeChatNetwork();
     	reInit();
     }
     
@@ -803,6 +785,8 @@ public class StrategoView extends Application implements Observer {
      * @param rowOrColumn value to translate
      * @param color server or client
      * @return translated value
+     * 
+     * @author Kristopher Rangel
      */
     protected static int translate(int rowOrColumn, int color) 
     {
@@ -929,7 +913,6 @@ public class StrategoView extends Application implements Observer {
         	}
         	
         	updatePosition(row, col, p);
-        	
         	msgRecvCount++;
         }
         
@@ -962,9 +945,7 @@ public class StrategoView extends Application implements Observer {
             	gameOver(winner, false);
             }
         }
-        
-        
-        
+
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
     }
     
@@ -978,8 +959,6 @@ public class StrategoView extends Application implements Observer {
      * @author Kristopher Rangel
      */
     private void addChat() {
-        // usage:   addChat("Chat line from blue player.", Piece.BLUE);
-        // usage:   addChat("Chat line from red player.", Piece.RED);
     	String chatText = chatEntry.getText();
     	int playerColor = colorInt;
     	

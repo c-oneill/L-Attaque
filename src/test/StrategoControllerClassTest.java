@@ -9,7 +9,6 @@ import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
 import javafx.scene.paint.Color;
-import stratego.AlertBox;
 import stratego.Piece;
 import stratego.StrategoController;
 import stratego.StrategoModel;

@@ -27,6 +27,7 @@ public class StrategoModel extends Observable
 	/**
 	 * StrategoModel constructor. Sets an empty board and initializes the
 	 * maps of all pieces on the board.
+	 * @author Caroline O'Neill
 	 */
 	public StrategoModel()
 	{
@@ -80,6 +81,8 @@ public class StrategoModel extends Observable
 	 * @param row row of position
 	 * @param col column of position
 	 * @return replaced Piece
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public Piece removePosition(int row, int col)
 	{
@@ -105,6 +108,8 @@ public class StrategoModel extends Observable
 	 * @param piece piece removed
 	 * @return true is blue or red piece is removed from the maps, false
 	 * otherwise
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public boolean removePiece(Piece piece)
 	{
@@ -126,6 +131,8 @@ public class StrategoModel extends Observable
 	 * @param piece piece added
 	 * @return true is blue or red piece is added to the maps, false
 	 * otherwise
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public boolean addPiece(Piece piece)
 	{
@@ -147,6 +154,8 @@ public class StrategoModel extends Observable
 	 * @param row row of position
 	 * @param col column of position
 	 * @param piece piece set
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public void setPosition(int row, int col, Piece piece)
 	{
@@ -164,6 +173,8 @@ public class StrategoModel extends Observable
 	 * @param row row of position
 	 * @param col column of position
 	 * @return piece
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public Piece getPosition(int row, int col)
 	{
@@ -178,6 +189,8 @@ public class StrategoModel extends Observable
 	 * @param setupGrid a 4 x 10 grid indicating the player setup
 	 * @param color player color
 	 * @param notify if true, notifies observers of setup
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public void setBoard(PieceType[][] setupGrid, int color, boolean notify)
 	{
@@ -203,10 +216,11 @@ public class StrategoModel extends Observable
 		}
 	}
 
-	
 	/**
 	 * Gets the HashMap of red pieces still on the board.
 	 * @return red pieces
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public HashMap<PieceType, Integer> getRedPieces()
 	{
@@ -216,6 +230,8 @@ public class StrategoModel extends Observable
 	/**
 	 * Gets the HashMap of blue pieces still on the board.
 	 * @return blue pieces
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public HashMap<PieceType, Integer> getBluePieces()
 	{
@@ -224,6 +240,8 @@ public class StrategoModel extends Observable
 	
 	/**
 	 * Prints the underlying grid for debugging purposes.
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	private void printGrid()
 	{
