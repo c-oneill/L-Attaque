@@ -262,6 +262,60 @@ public class StrategoNetwork {
     }
     
     /**
+     * Writes a {@link ChatMessage} to the output buffer of this connection.
+     *
+     * <p>If an exception occurred while trying to establish the connection,
+     * false is returned. In the event false is returned, 
+     * the error message can be retrieved by invoking {@link #getErrorMessage()}.
+     *
+     * @param message - the {@link ChatMessage} to transmit
+     * @return true if no exception, false otherwise
+     * 
+     * @author Caroline O'Neill
+     * @author Kristopher Rangel
+     */
+    public boolean writeChatMessage(ChatMessage message) {
+        boolean hasNoException = true;
+        errorMessage = "No error occurred";
+        try {
+            output.writeObject(message);
+        }catch(IOException e) {
+            hasNoException = false;
+            errorMessage = "IOException occured while writing message.";
+        }
+        return hasNoException;
+    }
+    
+    /**
+     * Reads a {@link ChatMessage} from the input buffer of this connection.
+     * 
+     * <p>If an exception occurred while trying to read the message, null will be returned.
+     * In that event, the error message can be retrieved by invoking {@link #getErrorMessage()}.
+     *
+     * @return - the read {@link ChatMessage} object
+     * 
+     * @author Kristopher Rangel
+     * @author Caroline O'Neill
+     */
+    public ChatMessage readChatMessage() {
+        ChatMessage message = null;
+        errorMessage = "No error occurred.";
+        try {
+            message = (ChatMessage) input.readObject();
+            errorMessage = "No error message.";
+        } catch(SocketException | EOFException e) {
+            errorMessage = "Connection Closed.";
+            closeConnection();
+        }catch(IOException e) {
+            errorMessage = "IOException occured while trying to read message.";
+            e.printStackTrace();
+        }catch(ClassNotFoundException e) {
+            errorMessage = "ClassNotFoundException occured while trying to read message.";
+        }
+        return message;
+    }
+    
+    /**
      * <ul><b><i>getStartError</i></b></ul>
      * <ul><ul><p><code>public boolean getStartError () </code></p></ul>
      *
