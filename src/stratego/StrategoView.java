@@ -196,8 +196,8 @@ public class StrategoView extends Application implements Observer {
     
     public void stop() {
     	// cleanup
-        controller.closeGameNetwork();
-        controller.closeChatNetwork();
+        controller.closeNetwork();
+        //controller.closeChatNetwork();
         
         hideTimer();
         if(timer != null)
@@ -502,7 +502,7 @@ public class StrategoView extends Application implements Observer {
             System.out.println("port " + port);
             
             startNewGame(server, port);
-            startNewChat(server, chatPort);
+            //startNewChat(server, chatPort);
         }
  
     }
@@ -522,10 +522,10 @@ public class StrategoView extends Application implements Observer {
     private void startNewGame(String server, int port) 
     {   
     	// if previous connection exists, close it
-    	controller.closeGameNetwork(); 
+    	controller.closeNetwork(); 
     	
     	//setup network connection
-        boolean hasConnectionError = controller.buildGameNetwork(isServer, server, port);
+        boolean hasConnectionError = controller.buildNetwork(isServer, server, port);
         
         if(hasConnectionError) 
         {
@@ -542,6 +542,8 @@ public class StrategoView extends Application implements Observer {
         	
         	inputEnabled = true;
         	controller.initiateSetupListening();
+        	//call continuous listening method in controller
+            controller.initiateChatListening(chatDisplay);
         }
 
         startTimer();
@@ -554,30 +556,30 @@ public class StrategoView extends Application implements Observer {
         }
     }
     
-    /**
-     * This function starts a new chat with the options selected by the user.
-     *
-     * @param server - the hostname of the server
-     * @param port - the port number
-     *
-     * @author Caroline O'Neill
-     */
-    private void startNewChat(String server, int port) 
-    {
-    	// if previous connection exists, close it
-    	controller.closeChatNetwork(); 
-    	
-    	//setup network connection
-        boolean hasConnectionError = controller.buildChatNetwork(isServer, server, port);
-        
-        if (hasConnectionError) 
-        {
-        	showAlert(AlertType.ERROR, controller.getChatNetworkError());
-        	return;
-    	}
-        //call continuous listening method in controller
-        controller.initiateChatListening(chatDisplay);
-    }
+//    /**
+//     * This function starts a new chat with the options selected by the user.
+//     *
+//     * @param server - the hostname of the server
+//     * @param port - the port number
+//     *
+//     * @author Caroline O'Neill
+//     */
+//    private void startNewChat(String server, int port) 
+//    {
+//    	// if previous connection exists, close it
+//    	controller.closeChatNetwork(); 
+//    	
+//    	//setup network connection
+//        boolean hasConnectionError = controller.buildChatNetwork(isServer, server, port);
+//        
+//        if (hasConnectionError) 
+//        {
+//        	showAlert(AlertType.ERROR, controller.getChatNetworkError());
+//        	return;
+//    	}
+//        //call continuous listening method in controller
+//        controller.initiateChatListening(chatDisplay);
+//    }
     
     /**
      * Shows an alert of the given type with the message passed.
@@ -687,8 +689,8 @@ public class StrategoView extends Application implements Observer {
 
     	showAlert(AlertType.INFORMATION, msg);
     	
-    	controller.closeGameNetwork();
-    	controller.closeChatNetwork();
+    	controller.closeNetwork();
+    	//controller.closeChatNetwork();
     	reInit();
     }
     
