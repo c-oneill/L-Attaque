@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -32,18 +33,22 @@ import stratego.Piece.PieceType;
 public class StrategoController 
 {
 	private StrategoModel model;
-	private StrategoNetwork network;
+	private StrategoNetwork gameNetwork;
+	private StrategoNetwork chatNetwork;
 	
 	private PieceType[][] blueInitialSetup;
 	private PieceType[][] redInitialSetup;
 	private HashMap<PieceType, Integer> blueAvailible; // piece : count 
 	private HashMap<PieceType, Integer> redAvailible; // piece :  count
 	
+	private AtomicBoolean chatListening;
+	
 	public StrategoController()
 	{
 		model = new StrategoModel();
 		
-		network = null;
+		gameNetwork = null;
+		chatNetwork = null;
 		
 		blueInitialSetup = new PieceType[4][10];
 		redInitialSetup = new PieceType[4][10];
@@ -53,22 +58,9 @@ public class StrategoController
 		
 		resetAvailible(Piece.BLUE);
 		resetAvailible(Piece.RED);
+		
+		chatListening.set(true);
 	}
-	
-//	public void startChat(Node node)
-//	{
-//		Thread chatRecvThread = new Thread(() -> 
-//    	{
-//    		ChatMessage chatMessage = network.readChatMessage();
-//
-//        	
-//    		Platform.runLater(() -> 
-//    		{
-//    			// appending to chatBox pushed until later in the main thread
-//    		});
-//    	});
-//		chatRecvThread.start();
-//	}
 	
 	/**
 	 * Reset HasMaps of piecees availible for placement to include all 40
@@ -110,39 +102,111 @@ public class StrategoController
 	}
 	
 	/**
-     * Build a client/server connection as a {@link StrategoNetwork}.
+     * Build a client/server connection as a {@link StrategoNetwork} for the
+     * game.
      * @param isServer is this instance a server
      * @param server the server to connect to (if it's a client)
      * @param port the port to connect to
      * @return start error
      */
-	public boolean buildNetwork(boolean isServer, String server, int port)
+	public boolean buildGameNetwork(boolean isServer, String server, int port)
     {
-    	network = new StrategoNetwork(isServer, server, port);
-    	return network.getStartError();
+		gameNetwork = new StrategoNetwork(isServer, server, port);
+    	return gameNetwork.getStartError();
     }
 	
 	/**
-     * Gets the error message associated with starting up the network.
+     * Build a client/server connection as a {@link StrategoNetwork} for the
+     * chat.
+     * @param isServer is this instance a server
+     * @param server the server to connect to (if it's a client)
+     * @param port the port to connect to
+     * @return start error
+     */
+	public boolean buildChatNetwork(boolean isServer, String server, int port)
+    {
+		chatNetwork = new StrategoNetwork(isServer, server, port);
+    	return chatNetwork.getStartError();
+    }
+	
+	/**
+     * Gets the error message associated with starting up the game network.
      * @return error message
      */
-    public String getNetworkError()
+    public String getGameNetworkError()
     {   String errorMessage = "No network established.";
-        if(network != null)
-            errorMessage =  network.getErrorMessage();
+        if(gameNetwork != null)
+            errorMessage =  gameNetwork.getErrorMessage();
         return errorMessage;
     }
     
+    /**
+     * Gets the error message associated with starting up the chat network.
+     * @return error message
+     */
+    public String getChatNetworkError()
+    {   String errorMessage = "No network established.";
+        if(chatNetwork != null)
+            errorMessage =  chatNetwork.getErrorMessage();
+        return errorMessage;
+    }
     
     /**
-     * Closes the network connection.
+     * Closes the game network connection.
      * @return true if there was no error closing connection, false otherwise
      */
-    public boolean closeNetwork()
+    public boolean closeGameNetwork()
     {   boolean result = false;
-        if(network != null)
-            result = network.closeConnection();
+        if(gameNetwork != null)
+            result = gameNetwork.closeConnection();
     	return result;
+    }
+    
+    /**
+     * Closes the chat network connection.
+     * @return true if there was no error closing connection, false otherwise
+     */
+    public boolean closeChatNetwork()
+    {
+    	chatListening.set(false);
+    	boolean result = false;
+        if(chatNetwork != null)
+            result = chatNetwork.closeConnection();
+    	return result;
+    }
+    
+    /**
+     * Initiates continuous listening for {@link ChatMessage} on the chat 
+     * network input stream.
+     * @param node the node to append messages to
+     */
+    public void initiateChatListening(Node node)
+    {
+		Thread chatRecvThread = new Thread(() -> 
+    	{
+    		while(chatListening.get())
+    		{
+        		ChatMessage chatMessage = chatNetwork.readChatMessage();
+
+        		Platform.runLater(() -> 
+        		{
+        			// appending to chatBox pushed until later in the main thread
+        			//TODO
+        		});
+    		}
+
+    	});
+		chatRecvThread.start();
+    }
+    
+    /**
+     * Writes a {@link ChatMessage} to the chat network output stream.
+     * @param msg message 
+     * @param color color of player the {@link ChatMessage} originates from.
+     */
+    public void writeChatMessage(String msg, int color)
+    {
+    	chatNetwork.writeChatMessage(new ChatMessage(msg, color));
     }
     
     /**
@@ -154,7 +218,7 @@ public class StrategoController
     {
     	Thread recvSetupThread = new Thread(() -> 
     	{
-    		BoardSetupMessage recvMessage = network.readStartupMessage();
+    		BoardSetupMessage recvMessage = gameNetwork.readStartupMessage();
     		
     		PieceType[][] otherInitialSetup =  recvMessage.getInitialSetup();
         	int color = recvMessage.getColor();
@@ -175,7 +239,7 @@ public class StrategoController
     public void writeGameOverMsg()
     {
     	System.out.println("sent game over message");
-    	network.writeMessage(new SinglePositionMessage(-1, -1, null));
+    	gameNetwork.writeMessage(new SinglePositionMessage(-1, -1, null));
     }
     
     /**
@@ -186,7 +250,7 @@ public class StrategoController
     {
     	Thread recvSetupThread = new Thread(() -> 
     	{
-    		SinglePositionMessage recvMsg1 = network.readMessage();
+    		SinglePositionMessage recvMsg1 = gameNetwork.readMessage();
     		if (recvMsg1 == null) { return; }
     		final int row1 = recvMsg1.getRow();
     		final int col1 = recvMsg1.getCol();
@@ -206,7 +270,7 @@ public class StrategoController
         		return;
         	}
     		        	
-    		SinglePositionMessage recvMsg2 = network.readMessage();
+    		SinglePositionMessage recvMsg2 = gameNetwork.readMessage();
     		if (recvMsg2 == null) { return; }
     		final int row2 = recvMsg2.getRow();
     		final int col2 = recvMsg2.getCol();
@@ -214,7 +278,7 @@ public class StrategoController
     		final Piece rp2 = recvMsg2.getPieceToRemovePlace();
         	final boolean removing2 = recvMsg2.isRemoved();
         	
-    		SinglePositionMessage recvMsg3 = network.readMessage();
+    		SinglePositionMessage recvMsg3 = gameNetwork.readMessage();
     		if (recvMsg3 == null) { return; }
     		final int row3 = recvMsg3.getRow();
     		final int col3 = recvMsg3.getCol();
@@ -269,8 +333,8 @@ public class StrategoController
 		model.setPosition(dstRow, dstCol, srcPiece); // 2nd locally
 		
 		// 3 total messages sent over network to update
-		network.writeMessage(new SinglePositionMessage(srcRow, srcCol, new Piece(PieceType.EMPTY), srcPiece, true)); // 1st over network
-		network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece, dstPiece, true)); // 2nd over network
+		gameNetwork.writeMessage(new SinglePositionMessage(srcRow, srcCol, new Piece(PieceType.EMPTY), srcPiece, true)); // 1st over network
+		gameNetwork.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece, dstPiece, true)); // 2nd over network
 		
 		if (winner == 0) // both removed
 		{
@@ -278,27 +342,27 @@ public class StrategoController
 			model.removePiece(dstPiece);
 			model.removePosition(dstRow, dstCol); // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, new Piece(PieceType.EMPTY), dstPiece, true)); // 3rd over network
+			gameNetwork.writeMessage(new SinglePositionMessage(dstRow, dstCol, new Piece(PieceType.EMPTY), dstPiece, true)); // 3rd over network
 		}
 		else if (winner == 1) // attacker remains, defender removed
 		{
 			model.removePiece(dstPiece);
 			model.setPosition(dstRow, dstCol, srcPiece); // unnecessary, but need consistent number of messages sent // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece, srcPiece, false)); // 3rd over network
+			gameNetwork.writeMessage(new SinglePositionMessage(dstRow, dstCol, srcPiece, srcPiece, false)); // 3rd over network
 		}
 		else if (winner == 2) // defender remains, attacker removed
 		{
 			model.removePiece(srcPiece);
 			model.setPosition(dstRow, dstCol, dstPiece); // 3rd locally
 			
-			network.writeMessage(new SinglePositionMessage(dstRow, dstCol, dstPiece, dstPiece, false)); // 3rd over network
+			gameNetwork.writeMessage(new SinglePositionMessage(dstRow, dstCol, dstPiece, dstPiece, false)); // 3rd over network
 		}
 		else // winner == -1
 		{
 			// unnecessary, but need consistent number of messages sent
 			model.setPosition(srcRow, srcCol, srcPiece); // 3rd locally
-			network.writeMessage(new SinglePositionMessage(srcRow, srcCol, srcPiece)); // 3rd over network
+			gameNetwork.writeMessage(new SinglePositionMessage(srcRow, srcCol, srcPiece)); // 3rd over network
 		}
 		
 		initiateTurnListening();
@@ -445,7 +509,7 @@ public class StrategoController
 		model.setBoard(initialSetup, color, true);
 		
 		BoardSetupMessage setupMessage = new BoardSetupMessage(color, initialSetup);
-		network.writeStartupMessage(setupMessage);
+		gameNetwork.writeStartupMessage(setupMessage);
 	}
 	
 	/**

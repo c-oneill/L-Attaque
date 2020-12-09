@@ -194,10 +194,10 @@ public class StrategoView extends Application implements Observer {
     	//stage.show();
     }
     
-    // TODO: need more here?
     public void stop() {
     	// cleanup
-        controller.closeNetwork();
+        controller.closeGameNetwork();
+        controller.closeChatNetwork();
         
         hideTimer();
         if(timer != null)
@@ -488,41 +488,12 @@ public class StrategoView extends Application implements Observer {
             }
             
             startNewGame(server, port);
+            //TODO: call startNewChat(server, port2);
         }
  
     }
     
-    // redundant method? gameOver(int winner) below
-//    /**
-//     * <ul><b><i>exitGameOption</i></b></ul>
-//     * <ul><ul><p><code>private void endGameOption () </code></p></ul>
-//     *
-//     * Performs required functions of ending the game.
-//     *
-//     *@author Kristopher Rangel
-//     */
-//    private void gameOver() {
-//        
-//        //TODO communicate gameOver status to connected server/client
-//        
-//        // Showing applicable win message.
-//        int winner = controller.winner();
-//        String winMsg = "The game has ended at user request.";
-//        if(winner == colorInt)
-//            winMsg = "You won the game!";
-//        else if(winner != 0)
-//            winMsg = "Your opponent won the game!";
-//        this.showAlert(AlertType.INFORMATION, winMsg);
-//        
-//        // cleanup
-//        controller.closeNetwork();
-//        hideTimer();
-//        timer.stopTimer();
-//        
-//        //TODO add end of game stuff
-//    }
-    
-    
+
     /**
      * <ul><b><i>startNewGame</i></b></ul>
      * <ul><ul><p><code>private void startNewGame (String server, int port) </code></p></ul>
@@ -536,17 +507,16 @@ public class StrategoView extends Application implements Observer {
      * @author Caroline O'Neill
      */
     private void startNewGame(String server, int port) 
-    {
-    	// TODO: disable network setup botton
-    	
+    {   
     	// if previous connection exists, close it
-    	controller.closeNetwork(); 
+    	controller.closeGameNetwork(); 
+    	
     	//setup network connection
-        boolean hasConnectionError = controller.buildNetwork(isServer, server, port);
+        boolean hasConnectionError = controller.buildGameNetwork(isServer, server, port);
         
         if(hasConnectionError) 
         {
-        	showAlert(AlertType.ERROR, controller.getNetworkError());
+        	showAlert(AlertType.ERROR, controller.getGameNetworkError());
         	return;
     	} 
         else 
@@ -560,17 +530,40 @@ public class StrategoView extends Application implements Observer {
         	inputEnabled = true;
         	controller.initiateSetupListening();
         }
-        
+
         startTimer();
         setupEnabled = true;
         changePieceBoxColor(playerColor);
-        
 
-        
         for(int i = SETUP_INDEX_START; i < SETUP_INDEX_END; i++) {
             PieceView pv = (PieceView) board.getChildren().get(i);
             pv.setDropEnabled(true);
         }
+    }
+    
+    /**
+     * This function starts a new chat with the options selected by the user.
+     *
+     * @param server - the hostname of the server
+     * @param port - the port number
+     *
+     * @author Caroline O'Neill
+     */
+    private void startNewChat(String server, int port) 
+    {
+    	// if previous connection exists, close it
+    	controller.closeChatNetwork(); 
+    	
+    	//setup network connection
+        boolean hasConnectionError = controller.buildChatNetwork(isServer, server, port);
+        
+        if (hasConnectionError) 
+        {
+        	showAlert(AlertType.ERROR, controller.getChatNetworkError());
+        	return;
+    	}
+        
+        //TODO: call continuous listening method in controller
     }
     
     /**
@@ -651,7 +644,6 @@ public class StrategoView extends Application implements Observer {
         }
         
         //TODO need to coordinate server/client setup completion before next
-        //TODO after setup stuff
     }
     
     /**
@@ -682,7 +674,8 @@ public class StrategoView extends Application implements Observer {
 
     	showAlert(AlertType.INFORMATION, msg);
     	
-    	controller.closeNetwork();
+    	controller.closeGameNetwork();
+    	controller.closeChatNetwork();
     	reInit();
     }
     
@@ -888,7 +881,6 @@ public class StrategoView extends Application implements Observer {
             if (recvOtherSetup && sentSetup)
             {
             	// proceed to 'battle phase'
-            	//TODO: alert about battle beginning
                 showAlert(AlertType.INFORMATION, "The game has started!");
                 hideTimer();
             	setupEnabled = false;
