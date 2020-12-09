@@ -13,6 +13,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.input.KeyCode;
 import javafx.scene.text.Font;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -214,7 +215,13 @@ public class StrategoView extends Application implements Observer {
         chatDisplay.setPrefHeight(WINDOW_HEIGHT);
         chatDisplay.setAlignment(Pos.TOP_LEFT);
         //TODO set style (i.e. font etc.)
-        chatEntry = new TextField("Enter Chat here.");
+        chatEntry = new TextField();
+        chatEntry.setOnKeyPressed(e -> {
+            if(e.getCode() == KeyCode.ENTER) {
+                sendChat();
+            }
+        });
+        
         chatBox.getChildren().addAll(chatDisplay, chatEntry);
         VBox.setVgrow(chatEntry, Priority.ALWAYS);
     }
@@ -974,6 +981,8 @@ public class StrategoView extends Application implements Observer {
      *
      * @param chatText - the String to add to the chat display
      * @param playerColor - the integer representing the player (Piece.BLUE or Piece.RED)
+     * 
+     * @author Kristopher Rangel
      */
     private void addChat(String chatText, int playerColor) {
         // usage:   addChat("Chat line from blue player.", Piece.BLUE);
@@ -984,6 +993,23 @@ public class StrategoView extends Application implements Observer {
         chatDisplay.setText(currentText);
     }
     
+    /**
+     * <ul><b><i>sendChat</i></b></ul>
+     * <ul><ul><p><code>private void sendChat () </code></p></ul>
+     *
+     * Sends the chat text entered into the chat entry box.
+     *
+     * @author Kristopher Rangel
+     */
+    private void sendChat() {
+        String chatText = chatEntry.getText();
+        chatEntry.setText("");
+        
+        System.out.println(chatText);
+        
+        //TODO do send chatText
+    }
+    
     
     /**
      * <ul><b><i>getPlayerColor</i></b></ul>
@@ -992,6 +1018,8 @@ public class StrategoView extends Application implements Observer {
      * Returns the player's color.
      *
      * @return the player's color
+     * 
+     * @author Kristopher Rangel
      */
     public static Color getPlayerColor() {
         return playerColor;
