@@ -166,6 +166,10 @@ public class StrategoView extends Application implements Observer {
         SETUP_DONE_WIDTH = STANDARD * 150;
         TIMER_FONT_SIZE = STANDARD * 45;
         
+        recvOtherSetup = false;
+        sentSetup = false;
+        msgRecvCount = 0;
+        
         playerColor = Color.RED;
         controller = new StrategoController();
         controller.setModelObserver(this);
@@ -176,13 +180,11 @@ public class StrategoView extends Application implements Observer {
         initPieces();
         initTimer();
 
-
         window = new BorderPane();    
         window.setCenter(board);
         window.setTop(menuBar);
         window.setRight(chatBox);
         window.setLeft(piecesBox);
-
     }
     
     private void reInit()
@@ -230,7 +232,7 @@ public class StrategoView extends Application implements Observer {
         newGame = new MenuItem("New Game");
         newGame.setOnAction(e -> { getNewGameOptions(); });
         MenuItem endGame = new MenuItem("End Game");
-        endGame.setOnAction(e -> { gameOver(Piece.NONE); }); 
+        endGame.setOnAction(e -> { gameOver(Piece.NONE, true); }); 
         fileMenu.getItems().addAll(newGame, endGame);
         menuBar.getMenus().add(fileMenu);
     }
@@ -476,6 +478,7 @@ public class StrategoView extends Application implements Observer {
             String server = newGameMenu.getServer();
             int port = newGameMenu.getPort();
             isServer = newGameMenu.getCreateModeSelection();
+            System.out.println("isServer = " + isServer);
             if(isServer) {
                 playerColor = Color.RED;
                 colorInt = Piece.RED;
@@ -655,10 +658,12 @@ public class StrategoView extends Application implements Observer {
      * Perform GameOver sequence.
      * @param winner color of winner: {@value Piece#RED}, {@value Piece#BLUE}, 
      * or {@value Piece#NONE} (for tie)
+     * @param notify true if the opponent needs to be notified, false if no
+     * notification needed
      * 
      * @author Caroline O'Neill
      */
-    private void gameOver(int winner)
+    private void gameOver(int winner, boolean notify)
     {    	
     	// display winning message pop-up
     	String msg;
@@ -666,6 +671,8 @@ public class StrategoView extends Application implements Observer {
     	{
     		msg = "The game has ended at user's request.";
     		//communicate gameOver status to connected server/client
+    		if(notify)
+    			controller.writeGameOverMsg();
     	}
     	else if (winner == colorInt)
     		msg = "You won!";
@@ -910,7 +917,11 @@ public class StrategoView extends Application implements Observer {
 
         	// user requested end game
         	if (row == -1 && col == -1)
-        		gameOver(Piece.NONE);
+        	{
+        		System.out.println("recv. end game message from opponent");
+        		gameOver(Piece.NONE, false);
+        		return;
+        	}
         	
         	updatePosition(row, col, p);
         	
@@ -943,7 +954,7 @@ public class StrategoView extends Application implements Observer {
             {
             	System.out.println("GAMEOVER");
             	System.out.println("isServer: " + isServer);
-            	gameOver(winner);
+            	gameOver(winner, false);
             }
         }
         

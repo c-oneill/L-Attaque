@@ -157,6 +157,12 @@ public class StrategoController
     	recvSetupThread.start();
     }
     
+    public void writeGameOverMsg()
+    {
+    	System.out.println("sent game over message");
+    	network.writeMessage(new SinglePositionMessage(-1, -1, null));
+    }
+    
     /**
      * Sets up {@link StrategoController} to listen for three incoming 
      * {@link SinglePositionMessage}.
@@ -166,21 +172,35 @@ public class StrategoController
     	Thread recvSetupThread = new Thread(() -> 
     	{
     		SinglePositionMessage recvMsg1 = network.readMessage();
-    		SinglePositionMessage recvMsg2 = network.readMessage();
-    		SinglePositionMessage recvMsg3 = network.readMessage();
-			
+    		if (recvMsg1 == null) { return; }
     		final int row1 = recvMsg1.getRow();
     		final int col1 = recvMsg1.getCol();
     		final Piece piece1 = recvMsg1.getPiece();
     		final Piece rp1 = recvMsg1.getPieceToRemovePlace();
         	final boolean removing1 = recvMsg1.isRemoved();
-    		
+        	
+        	// game over message from other user
+        	if (row1 == -1 && col1 == -1)
+        	{
+        		System.out.println("recieved game over message 1");
+        		Platform.runLater(() -> 
+        		{
+        			System.out.println("recieved game over message 2");
+        			model.setPosition(row1, col1, piece1);
+        		});
+        		return;
+        	}
+    		        	
+    		SinglePositionMessage recvMsg2 = network.readMessage();
+    		if (recvMsg2 == null) { return; }
     		final int row2 = recvMsg2.getRow();
     		final int col2 = recvMsg2.getCol();
     		final Piece piece2 = recvMsg2.getPiece();
     		final Piece rp2 = recvMsg2.getPieceToRemovePlace();
         	final boolean removing2 = recvMsg2.isRemoved();
-    		
+        	
+    		SinglePositionMessage recvMsg3 = network.readMessage();
+    		if (recvMsg3 == null) { return; }
     		final int row3 = recvMsg3.getRow();
     		final int col3 = recvMsg3.getCol();
     		final Piece piece3 = recvMsg3.getPiece();
@@ -296,8 +316,7 @@ public class StrategoController
 			}
 
 		}
-	}
-	
+	}	
 	
 	/**
 	 * Determines if a given moves jumps other pieces or lakes. Assumes

@@ -150,7 +150,8 @@ public class StrategoModel extends Observable
 	 */
 	public void setPosition(int row, int col, Piece piece)
 	{
-		grid[row][col] = piece;
+		if (row >= 0 && col >= 0) // excludes end game message
+			grid[row][col] = piece;
 		
 		// notify observers with SinglePositionMessage
 		SinglePositionMessage message = new SinglePositionMessage(row, col, piece);
