@@ -98,22 +98,6 @@ public class PieceView extends VBox {
     }
     
     /**
-     * Set PieceView label text.
-     * @param text text
-     */
-    public void setLabelText(String text) {
-        label.setText(text);
-    }
-    
-    /**
-     * Get PieceView label text.
-     * @return text
-     */
-    public Label getLabel() {
-        return this.label;
-    }
-    
-    /**
      * Overloaded Constructor.
      * 
      * <p>Loads the constructor with a default border width of 3.
@@ -198,8 +182,6 @@ public class PieceView extends VBox {
         // Drag over entered event ( mouse is dragging over this)
         this.setOnDragEntered(e -> {
             if(dropEnabled) {
-                //TODO check for own pieces and not highlight if not during setup
-                //TODO check for invalid move square and not highlight
 
                 // setting color to "highlight" square mouse is over
                 Color c = Color.MAGENTA;
@@ -308,7 +290,7 @@ public class PieceView extends VBox {
     
     /**
      * <ul><b><i>initBackground</i></b></ul>
-     * <ul><ul><p><code>private void initBackground (pieceIndex) </code></p></ul>
+     * <ul><ul><p><code>private void initBackground (int pieceIndex) </code></p></ul>
      *
      * Initialized the background.
      * 
@@ -382,8 +364,14 @@ public class PieceView extends VBox {
     }
     
     /**
+     * <ul><b><i>saveBorderColor</i></b></ul>
+     * <ul><ul><p><code> void saveBorderColor (Color color) </code></p></ul>
+     * 
      * Set PieceView border color.
-     * @param color color
+     * 
+     * @param color {@link Color} to set the border to
+     * 
+     * @author Kristopher Rangel
      */
     public void saveBorderColor(Color color) {
         this.borderColor = color;
@@ -438,7 +426,7 @@ public class PieceView extends VBox {
     
     /**
      * <ul><b><i>setPiece</i></b></ul>
-     * <ul><ul><p><code>private void setPiece () </code></p></ul>
+     * <ul><ul><p><code>private void setPieceType () </code></p></ul>
      *
      * Stores or updates a reference to a {@link Piece} object that this {@link PieceView}
      * represents.
@@ -452,12 +440,12 @@ public class PieceView extends VBox {
     
     /**
      * <ul><b><i>getPiece</i></b></ul>
-     * <ul><ul><p><code>private Piece getPiece () </code></p></ul>
+     * <ul><ul><p><code>private PieceType getPiece () </code></p></ul>
      *
-     * Returns the {@link Piece} object that this {@link PieceView} object
+     * Returns the {@link PieceType} object that this {@link PieceView} object
      * represents. 
      *
-     * @return the <code>Piece</code> object represented by this object
+     * @return the <code>PieceType</code> object represented by this object
      * 
      * @author Kristopher Rangel
      */
@@ -473,6 +461,8 @@ public class PieceView extends VBox {
      *
      * @param row - the row on the board
      * @param col - the column on the board
+     * 
+     * @author Kristopher Rangel
      */
     public void setPosition(int row, int col) {
         this.row = row;
@@ -480,8 +470,13 @@ public class PieceView extends VBox {
     }
     
     /**
+     * <ul><b><i>setIsOnBoard</i></b></ul>
+     * <ul><ul><p><code>public void setIsOnBoard (boolean isOnBoard) </code></p></ul>
+     * 
      * Sets the {@link #isOnBoard} value.
      * @param isOnBoard true if if on board, false if elsewhere (left piece box)
+     * 
+     * @author Kristopher Rangel
      */
     public void setIsOnBoard(boolean isOnBoard) {
         this.isOnBoard = isOnBoard;
@@ -494,7 +489,8 @@ public class PieceView extends VBox {
      * Converts this object into a string value representing the 
      * piece index, the border color, and the border width.
      *
-     *<p>In the form: "pieceIndex row column borderColor isOnBoard"
+     *<p>Copied to the {@link DragBoard} during drag and drop operations.</p>
+     *<p>In the form: "pieceIndex row column borderColor isOnBoard playerColor isVisible"<p>
      *
      * @return - the string representation of this object
      * 
@@ -602,35 +598,56 @@ public class PieceView extends VBox {
     }
     
     /**
+     * <ul><b><i>setPlayerColor</i></b></ul>
+     * <ul><ul><p><code>public void setPlayerColor (Color c) </code></p></ul>
+     * 
      * Sets {@link #playerColor}.
      * @param c color
+     * 
+     * @author Kristopher Rangel
      */
+
     public void setPlayerColor(Color c) {
         this.playerColor = c;
     }
     
     /**
+     * <ul><b><i>setIsVisible</i></b></ul>
+     * <ul><ul><p><code>public void setIsVisible (boolean isVisible) </code></p></ul>
+     * 
      * Sets {@link #isVisible}
      * @param isVisible true if visible, false otherwise
+     * 
+     * @author Kristopher Rangel
      */
     public void setIsVisible(boolean isVisible) {
         this.isVisible = isVisible;
     }
     
     /**
+     * <ul><b><i>getIsVisible</i></b></ul>
+     * <ul><ul><p><code>public boolean getIsVisible () </code></p></ul>
+     * 
      * Gets {@link #isVisible}.
      * @return isVisible
+     * 
+     * @author Kristopher Rangel
      */
+
     public boolean getIsVisible() {
         return this.isVisible;
     }
-    
     /**
+     * <ul><b><i>isVisible</i></b></ul>
+     * <ul><ul><p><code>public boolean isVisible (Color c) </code></p></ul>
+     * 
      * Indicates if piece is visible with added logic that opponent's pieces
      * should not be visible.
      * @param c player color
      * @return true if visible and piece does not belong to the opponent, false
      * otherwise
+     * 
+     * @author Kristopher Rangel
      */
     public boolean isVisible(Color c) {
         if(this.playerColor == c) 
@@ -641,7 +658,12 @@ public class PieceView extends VBox {
     }
     
     /**
+     * <ul><b><i>hide</i></b></ul>
+     * <ul><ul><p><code>private void hide () </code></p></ul>
+     * 
      * Sets attibutes to hide piece.
+     * 
+     * @author Kristopher Rangel
      */
     public void hide() {
         isVisible = false;
@@ -650,11 +672,43 @@ public class PieceView extends VBox {
     }
     
     /**
+     * <ul><b><i>show</i></b></ul>
+     * <ul><ul><p><code>private void show () </code></p></ul>
+     * 
      * Sets attributes to reveal piece.
+     * 
+     * @author Kristopher Rangel
      */
     public void show() {
         isVisible = true;
         this.saveBorderColor(playerColor);
         this.setBorderColor(playerColor);
+    }
+    /**
+     * <ul><b><i>setLabelText</i></b></ul>
+     * <ul><ul><p><code>public void setLabelText (String text) </code></p></ul>
+     * 
+     * Set PieceView label text.
+     * 
+     * @param text - the <code>String</code> to set the label text to
+     * 
+     * @author Kristopher Rangel
+     */
+    public void setLabelText(String text) {
+        label.setText(text);
+    }
+    
+    /**
+     * <ul><b><i>getLabel</i></b></ul>
+     * <ul><ul><p><code>public Label getLabel () </code></p></ul>
+     *
+     * Get PieceView label text.
+     * 
+     * @return the text from this object's label
+     * 
+     * @author Kristopher Rangel
+     */
+    public Label getLabel() {
+        return this.label;
     }
 }

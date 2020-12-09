@@ -840,6 +840,10 @@ public class StrategoView extends Application implements Observer {
      * @author Kristopher Rangel
      *
      */
+    
+     // was used for debugging
+    
+    /*
     private void manualBoardUpdate() {
         for(int row = 0; row < 10; row++) {
             for(int col = 0; col < 10; col++) {
@@ -863,7 +867,7 @@ public class StrategoView extends Application implements Observer {
             if(ENABLE_CONSOLE_DEBUG) { System.out.printf(" End row: %d\n", row); }
         }
     }
-    
+    */
     /**
      * Updates a single board position, accounting for coordinate translation
      * between the model and client boards.

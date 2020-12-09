@@ -18,6 +18,7 @@ import java.net.SocketException;
  * {@link #getErrorMessage()} method.</p>
  * 
  * @author Kristopher Rangel
+ * @author Caroline O'Neill
  *
  */
 
