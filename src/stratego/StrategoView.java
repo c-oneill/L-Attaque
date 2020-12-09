@@ -13,6 +13,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.input.KeyCode;
 import javafx.scene.text.Font;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -70,7 +71,7 @@ public class StrategoView extends Application implements Observer {
     private VBox chatBox;
     private MenuBar menuBar; 
     private MenuItem newGame;
-    private TextField chatDisplay;
+    private Label chatDisplay;
     private TextField chatEntry;
     private Label clockFace;
     private StrategoController controller;
@@ -208,12 +209,19 @@ public class StrategoView extends Application implements Observer {
         chatBox = new VBox();
         chatBox.setPrefWidth(CHATBOX_WIDTH);
         chatBox.styleProperty().set("-fx-border-color: green;"); // border
-        chatDisplay = new TextField(">> This is the chat box.");
-        chatDisplay.setEditable(false);
+        chatDisplay = new Label(">> This is the chat box.");
+        //chatDisplay.setEditable(false);
+        chatDisplay.setWrapText(true);
         chatDisplay.setPrefHeight(WINDOW_HEIGHT);
         chatDisplay.setAlignment(Pos.TOP_LEFT);
-        chatDisplay.setDisable(true);
-        chatEntry = new TextField("Enter Chat here.");
+        //TODO set style (i.e. font etc.)
+        chatEntry = new TextField();
+        chatEntry.setOnKeyPressed(e -> {
+            if(e.getCode() == KeyCode.ENTER) {
+                sendChat();
+            }
+        });
+        
         chatBox.getChildren().addAll(chatDisplay, chatEntry);
         VBox.setVgrow(chatEntry, Priority.ALWAYS);
     }
@@ -852,6 +860,7 @@ public class StrategoView extends Application implements Observer {
      * @author Caroline O'Neill
      */
     public void update(Observable o, Object arg) {
+
         if(ENABLE_INPUT_DEBUG) {
             setBoardEnable();    
         }
@@ -955,6 +964,55 @@ public class StrategoView extends Application implements Observer {
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
     }
     
+
+    /**
+     * <ul><b><i>addChat</i></b></ul>
+     * <ul><ul><p><code>private void addChat (String chatText, int playerColor) </code></p></ul>
+     *
+     * Adds the given line to the chat display, prefixed by the given player.
+     *
+     * @param chatText - the String to add to the chat display
+     * @param playerColor - the integer representing the player (Piece.BLUE or Piece.RED)
+     * 
+     * @author Kristopher Rangel
+     */
+    private void addChat(String chatText, int playerColor) {
+        // usage:   addChat("Chat line from blue player.", Piece.BLUE);
+        // usage:   addChat("Chat line from red player.", Piece.RED);
+        String colorString = (playerColor == 1) ? "BLUE" : "RED ";
+        String currentText = chatDisplay.getText();
+        currentText = currentText + "\n" + colorString +" >> " + chatText;
+        chatDisplay.setText(currentText);
+    }
+    
+    /**
+     * <ul><b><i>sendChat</i></b></ul>
+     * <ul><ul><p><code>private void sendChat () </code></p></ul>
+     *
+     * Sends the chat text entered into the chat entry box.
+     *
+     * @author Kristopher Rangel
+     */
+    private void sendChat() {
+        String chatText = chatEntry.getText();
+        chatEntry.setText("");
+        
+        System.out.println(chatText);
+        
+        //TODO do send chatText
+    }
+    
+    
+    /**
+     * <ul><b><i>getPlayerColor</i></b></ul>
+     * <ul><ul><p><code>public static Color getPlayerColor () </code></p></ul>
+     *
+     * Returns the player's color.
+     *
+     * @return the player's color
+     * 
+     * @author Kristopher Rangel
+     */
     public static Color getPlayerColor() {
         return playerColor;
     }
