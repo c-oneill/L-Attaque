@@ -24,13 +24,12 @@ public class StrategoNewGameMenu extends Stage{
     private final int PADDING = 10; 
     private final String DEFAULT_SERVER = "localhost";
     private final String DEFAULT_PORT = "4000";
-    private final String DEFAULT_CHAT_PORT = "8080";
+    
     private Scene scene;
     private RadioButton serverRB;
     private RadioButton clientRB;
     private TextField serverTF;
     private TextField portTF;
-    private TextField chatPortTF;
     private boolean hitOK;
     
     /**
@@ -91,52 +90,39 @@ public class StrategoNewGameMenu extends Stage{
      */
     private void setScene() {
 
-        HBox toggleRow = getCreateServerClientRow();
+        HBox row1 = getCreateServerClientRow();
         
+        // row2 (server/port row)
         Label serverLabel = new Label("Server");
         serverTF = new TextField(DEFAULT_SERVER);
-        Label portLabel = new Label("Port  ");
+        Label portLabel = new Label("Port");
         portTF = new TextField(DEFAULT_PORT);
         
-        HBox serverBox = new HBox(serverLabel, serverTF);
-        serverBox.setSpacing(PADDING);
+        HBox row2 = new HBox(serverLabel, serverTF, portLabel, portTF);
+        row2.setSpacing(PADDING);
         
-        Label chatPortLabel = new Label("Chat Port");
-        chatPortTF = new TextField(DEFAULT_CHAT_PORT);
         
-        // button row
+        // row4 (button row)
         Button okay = new Button("OK");
         okay.setOnAction(e -> { hitOK = true; this.close(); } ); 
         Button cancel = new Button("Cancel");
         cancel.setOnAction(e -> { this.close(); } );
         
-        HBox buttonRow = new HBox(okay, cancel);
-        buttonRow.setSpacing(PADDING * 3); // spacing buttons out
- 
+        HBox row3 = new HBox(okay, cancel);
+        row3.setSpacing(PADDING);
+  
         
-        // Adding rows to GridPane
-        GridPane box = new GridPane();
-        box.add(new Label(),   0, 0); // for spacing
-        box.add(toggleRow,     0, 1);
-        box.add(new Label(),   0, 2); // for spacing
-        box.add(serverBox,     0, 3);
-        box.add(portLabel,     1, 3);
-        box.add(portTF,        2, 3);
-        box.add(new Label(),   0, 4); // for spacing
-        box.add(chatPortLabel, 1, 5);
-        box.add(chatPortTF,    2, 5);
-        box.add(new Label(),   0, 6); // for spacing
-        box.add(buttonRow,     0, 7);
+        // Adding rows to Vbox
+        VBox box = new VBox(row1, row2, row3);;
         
-        // Setting margins
+        // Setting padding for Vbox
         Insets boxInsets = new Insets(PADDING);
-        GridPane.setMargin(toggleRow, boxInsets);
-        GridPane.setMargin(serverBox, boxInsets);
-        GridPane.setMargin(portTF, boxInsets);
-        GridPane.setMargin(chatPortTF, boxInsets);
-        GridPane.setMargin(buttonRow, boxInsets);
+        VBox.setMargin(row1, boxInsets);
+        VBox.setMargin(row2, boxInsets);
+        VBox.setMargin(row3, boxInsets);
+        box.setSpacing(PADDING);
         
-        // Adding to scene
+        // Adding VBox to scene
         this.scene = new Scene(box);
         this.setScene(scene);
     }
@@ -182,22 +168,6 @@ public class StrategoNewGameMenu extends Stage{
     public int getPort() {
         return Integer.valueOf(portTF.getText());
     }
-    
-    /**
-     * <ul><b><i>getChatPort</i></b></ul>
-     * <ul><ul><p><code>public int getChatPort () </code></p></ul>
-     *
-     * Gets the user-entered chat port number.
-     *
-     * @return - the <code>Integer</code> representation of the user entered value in the chat port text box
-     *
-     * @author Kristopher Rangel
-     */
-    public int getChatPort() {
-        return Integer.valueOf(chatPortTF.getText());
-    }
-        
-    
     
     /**
      * <ul><b><i>userHitOK</i></b></ul>

@@ -486,7 +486,6 @@ public class StrategoView extends Application implements Observer {
             // Getting user options
             String server = newGameMenu.getServer();
             int port = newGameMenu.getPort();
-            int chatPort = newGameMenu.getChatPort();
             isServer = newGameMenu.getCreateModeSelection();
             System.out.println("isServer = " + isServer);
             if(isServer) {
@@ -498,11 +497,9 @@ public class StrategoView extends Application implements Observer {
             }
             
             System.out.println("server: " + server);
-            System.out.println("chatPort " + chatPort);
             System.out.println("port " + port);
             
             startNewGame(server, port);
-            //startNewChat(server, chatPort);
         }
  
     }
