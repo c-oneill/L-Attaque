@@ -497,8 +497,12 @@ public class StrategoView extends Application implements Observer {
                 colorInt = Piece.BLUE;
             }
             
+            System.out.println("server: " + server);
+            System.out.println("chatPort " + chatPort);
+            System.out.println("port " + port);
+            
+            startNewGame(server, port);
             startNewChat(server, chatPort);
-            //startNewGame(server, port);
         }
  
     }

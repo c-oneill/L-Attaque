@@ -71,6 +71,7 @@ public class StrategoNetwork {
         boolean hasNoException = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             connection = serverSocket.accept();
+            serverSocket.close(); // TODO
             output = new ObjectOutputStream(connection.getOutputStream());
             input = new ObjectInputStream(connection.getInputStream());
  
