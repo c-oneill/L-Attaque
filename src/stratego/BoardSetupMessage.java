@@ -5,7 +5,7 @@ import java.io.Serializable;
 import stratego.Piece.PieceType;
 
 /**
- * BoardSetupMessage communicates a one player's board setup change after the
+ * BoardSetupMessage communicates one player's board setup change after the
  * initialization phase.
  * 
  * @author Caroline O'Neill
@@ -18,6 +18,11 @@ public class BoardSetupMessage implements Serializable
 	private int color;
 	private PieceType[][] initialSetup;
 	
+	/**
+	 * Constructor.
+	 * @param color setup color, identifies player setup belongs to
+	 * @param initialSetup 4 row by 10 column 2D array with setup
+	 */
 	public BoardSetupMessage(int color, PieceType[][] initialSetup)
 	{
 		this.color = color;

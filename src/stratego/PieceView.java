@@ -97,9 +97,18 @@ public class PieceView extends VBox {
         
     }
     
+    /**
+     * Set PieceView label text.
+     * @param text text
+     */
     public void setLabelText(String text) {
         label.setText(text);
     }
+    
+    /**
+     * Get PieceView label text.
+     * @return text
+     */
     public Label getLabel() {
         return this.label;
     }
@@ -191,8 +200,7 @@ public class PieceView extends VBox {
             if(dropEnabled) {
                 //TODO check for own pieces and not highlight if not during setup
                 //TODO check for invalid move square and not highlight
-                
-                
+
                 // setting color to "highlight" square mouse is over
                 Color c = Color.MAGENTA;
                 setBorderColor(c);
@@ -201,7 +209,6 @@ public class PieceView extends VBox {
                     System.out.print("Drag entered ");
                     testPrintPiece();
                 }
-                
             }
         });
 
@@ -320,12 +327,12 @@ public class PieceView extends VBox {
             this.color = LAKE;
             dragEnabled = false;
             dropEnabled = false;
-        }else if(pieceIndex == -1) { // empty land
+        } else if(pieceIndex == -1) { // empty land
             this.color = LAND;
             dragEnabled = false;
-        }else if(!isVisible){
+        } else if(!isVisible){
             this.color = playerColor;
-        }else {
+        } else {
             this.color = Color.TRANSPARENT;
         }
         
@@ -335,7 +342,7 @@ public class PieceView extends VBox {
                     BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
             bg = new Background(bgi);
             
-        }else {
+        } else {
             BackgroundFill bgfill = new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY);
             bg = new Background(bgfill);
         }
@@ -374,6 +381,10 @@ public class PieceView extends VBox {
         r.setStroke(color);
     }
     
+    /**
+     * Set PieceView border color.
+     * @param color color
+     */
     public void saveBorderColor(Color color) {
         this.borderColor = color;
     }
@@ -468,6 +479,10 @@ public class PieceView extends VBox {
         this.col = col;
     }
     
+    /**
+     * Sets the {@link #isOnBoard} value.
+     * @param isOnBoard true if if on board, false if elsewhere (left piece box)
+     */
     public void setIsOnBoard(boolean isOnBoard) {
         this.isOnBoard = isOnBoard;
     }
@@ -586,18 +601,37 @@ public class PieceView extends VBox {
         initBackground(convertPieceTypeToIndex(this.piece));
     }
     
+    /**
+     * Sets {@link #playerColor}.
+     * @param c color
+     */
     public void setPlayerColor(Color c) {
         this.playerColor = c;
     }
     
+    /**
+     * Sets {@link #isVisible}
+     * @param isVisible true if visible, false otherwise
+     */
     public void setIsVisible(boolean isVisible) {
         this.isVisible = isVisible;
     }
     
+    /**
+     * Gets {@link #isVisible}.
+     * @return isVisible
+     */
     public boolean getIsVisible() {
         return this.isVisible;
     }
     
+    /**
+     * Indicates if piece is visible with added logic that opponent's pieces
+     * should not be visible.
+     * @param c player color
+     * @return true if visible and piece does not belong to the opponent, false
+     * otherwise
+     */
     public boolean isVisible(Color c) {
         if(this.playerColor == c) 
             isVisible = true;
@@ -606,12 +640,18 @@ public class PieceView extends VBox {
         return isVisible;
     }
     
+    /**
+     * Sets attibutes to hide piece.
+     */
     public void hide() {
         isVisible = false;
         this.saveBorderColor(Color.BLACK);
         this.setBorderColor(Color.BLACK);
     }
     
+    /**
+     * Sets attributes to reveal piece.
+     */
     public void show() {
         isVisible = true;
         this.saveBorderColor(playerColor);

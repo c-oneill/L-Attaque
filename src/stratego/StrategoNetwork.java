@@ -46,6 +46,7 @@ public class StrategoNetwork {
      * @param port - the port number
      * 
      * @author Kristopher Rangel
+     * @author Caroline O'Neill
      * 
      */
     public StrategoNetwork(boolean isServer, String server, int port) {
@@ -72,8 +73,10 @@ public class StrategoNetwork {
      * @return true if no exception, false otherwise
      * 
      * @author Kristopher Rangel
+     * @author Caroline O'Neill
      */
-    private boolean startServer(int port) {
+    private boolean startServer(int port) 
+    {
         boolean hasNoException = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             connection = serverSocket.accept();
@@ -88,12 +91,12 @@ public class StrategoNetwork {
             chatOutput = new ObjectOutputStream(chatConnection.getOutputStream());
             chatInput = new ObjectInputStream(chatConnection.getInputStream());
             
-            serverSocket.close(); // TODO
+            serverSocket.close();
  
         }catch(IOException e) {
             hasNoException = false;
             errorMessage = "IOException occurred while trying to establish server.";
-            e.printStackTrace(); //TODO: remove
+            //e.printStackTrace();
         }
         return hasNoException;
     }
@@ -113,9 +116,9 @@ public class StrategoNetwork {
      * @return true if no exception, false otherwise
      * 
      * @author Kristopher Rangel
+     * @author Caroline O'Neill
      * 
      */
-
     private boolean startClient(String server, int port) {
         boolean hasNoException = true;
         try {
@@ -127,11 +130,23 @@ public class StrategoNetwork {
         }catch(IOException e) {
             hasNoException = false;
             errorMessage = "IOException occurred while trying to establish connection to server.";
-            e.printStackTrace(); //TODO: remove
+            //e.printStackTrace();
         }
         return hasNoException;
     }
     
+    /**
+     * Attempts to connect to the server to create a socket for 
+     * {@link ChatMessage} communication.
+     * 
+     * @param server the host name, or null for the loopback address
+     * @param port the port number
+     * @return true if no exception, false otherwise
+     * 
+     * @author Caroline O'Neill
+     * @author Kristopher Rangel
+     * 
+     */
     private boolean startClientChat(String server, int port) {
         boolean hasNoException = true;
         try {
@@ -143,7 +158,7 @@ public class StrategoNetwork {
         }catch(IOException e) {
             hasNoException = false;
             errorMessage = "IOException occurred while trying to establish connection to server.";
-            e.printStackTrace(); //TODO: remove
+            //e.printStackTrace();
         }
         return hasNoException;
     }
@@ -180,18 +195,32 @@ public class StrategoNetwork {
         return hasNoException;
     }
     
-    public boolean closeChatConnection() {
+    /**
+     * Closes the connection created by this class.
+     * 
+     * <p>If an exception occurred or an attempt was made to close a
+     * null connection, false is returned. In the event false is returned, 
+     * the error message can be retrieved by invoking {@link #getErrorMessage()}.
+     * 
+     * @return true if no exception, false otherwise
+     * 
+     * @author Caroline O'Neill
+     * @author Kristopher Rangel
+     */
+    public boolean closeChatConnection() 
+    {
         boolean hasNoException = true;
-        try { 
-            
+        try 
+        {    
             if(chatConnection != null)
                 chatConnection.close();
-            else {
+            else 
+            {
                 hasNoException = false;
                 errorMessage = "Attempted to close a null connection.";
             }
                 
-        }catch(IOException e) {
+        } catch(IOException e) {
             hasNoException = false;
             errorMessage = "IOException occurred while trying to close connection.";
         }

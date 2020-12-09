@@ -3,9 +3,9 @@ package stratego;
 import java.io.Serializable;
 
 /**
+ * ChatMessage communicates communicates chat messages between players.
  * 
  * @author Caroline O'Neill
- *
  */
 public class ChatMessage implements Serializable 
 {

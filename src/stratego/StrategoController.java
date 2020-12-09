@@ -26,9 +26,6 @@ import stratego.Piece.PieceType;
  * 
  * @author Caroline O'Neill
  * 
- * TODO: Need to integrate the network controls
- * TODO: correct MVC architecture to build model here?
- *
  */
 public class StrategoController 
 {
@@ -42,6 +39,13 @@ public class StrategoController
 	
 	private AtomicBoolean chatListening;
 	
+	/**
+	 * Constructor.
+	 * <p> Constructs {@link StrategoModel} and bulids maps of availible 
+	 * blue/red pieces.
+	 * 
+	 * @author Caroline O'Neill
+	 */
 	public StrategoController()
 	{
 		model = new StrategoModel();
@@ -64,6 +68,8 @@ public class StrategoController
 	 * Reset HasMaps of piecees availible for placement to include all 40
 	 * pieces.
 	 * @param color color of piece set reseting
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	private void resetAvailible(int color)
 	{
@@ -106,6 +112,8 @@ public class StrategoController
      * @param server the server to connect to (if it's a client)
      * @param port the port to connect to
      * @return start error
+     * 
+     * @author Caroline O'Neill
      */
 	public boolean buildNetwork(boolean isServer, String server, int port)
     {
@@ -113,48 +121,29 @@ public class StrategoController
     	return network.getStartError();
     }
 	
-//	/**
-//     * Build a client/server connection as a {@link StrategoNetwork} for the
-//     * chat.
-//     * @param isServer is this instance a server
-//     * @param server the server to connect to (if it's a client)
-//     * @param port the port to connect to
-//     * @return start error
-//     */
-//	public boolean buildChatNetwork(boolean isServer, String server, int port)
-//    {
-//		chatNetwork = new StrategoNetwork(isServer, server, port);
-//    	return chatNetwork.getStartError();
-//    }
-	
 	/**
      * Gets the error message associated with starting up the game network.
      * @return error message
+     * 
+     * @author Caroline O'Neill
      */
     public String getGameNetworkError()
-    {   String errorMessage = "No network established.";
+    {   
+    	String errorMessage = "No network established.";
         if(network != null)
             errorMessage =  network.getErrorMessage();
         return errorMessage;
     }
     
-//    /**
-//     * Gets the error message associated with starting up the chat network.
-//     * @return error message
-//     */
-//    public String getChatNetworkError()
-//    {   String errorMessage = "No network established.";
-//        if(chatNetwork != null)
-//            errorMessage =  chatNetwork.getErrorMessage();
-//        return errorMessage;
-//    }
-    
     /**
      * Closes the game network connection.
      * @return true if there was no error closing connection, false otherwise
+     * 
+     * @author Caroline O'Neill
      */
     public boolean closeNetwork()
-    {   boolean result = false;
+    {   
+    	boolean result = false;
         if(network != null)
         {
             result = network.closeConnection();
@@ -163,23 +152,12 @@ public class StrategoController
     	return result;
     }
     
-//    /**
-//     * Closes the chat network connection.
-//     * @return true if there was no error closing connection, false otherwise
-//     */
-//    public boolean closeChatNetwork()
-//    {
-//    	chatListening.set(false);
-//    	boolean result = false;
-//        if(chatNetwork != null)
-//            result = chatNetwork.closeConnection();
-//    	return result;
-//    }
-    
     /**
      * Initiates continuous listening for {@link ChatMessage} on the chat 
      * network input stream.
      * @param chatDisplay chat display
+     * 
+     * @author Caroline O'Neill
      */
     public void initiateChatListening(Label chatDisplay)
     {
@@ -215,6 +193,8 @@ public class StrategoController
      * Writes a {@link ChatMessage} to the chat network output stream.
      * @param msg message 
      * @param color color of player the {@link ChatMessage} originates from.
+     * 
+     * @author Caroline O'Neill
      */
     public void writeChatMessage(String msg, int color)
     {
@@ -226,6 +206,8 @@ public class StrategoController
      * Prepares client to recieve other Player's first message (board setup),
      * then passes off responsibility to the 
      * {@link StrategoController#setBoard(int)} method.
+     * 
+     * @author Caroline O'Neill
      */
     public void initiateSetupListening()
     {
@@ -250,6 +232,12 @@ public class StrategoController
     	recvSetupThread.start();
     }
     
+    /**
+     * Sends a null {@link SinglePositionMessage} to the opponent to trigger
+     * a user requested game over on their end.
+     * 
+     * @author Caroline O'Neill
+     */
     public void writeGameOverMsg()
     {
     	System.out.println("sent game over message");
@@ -259,6 +247,8 @@ public class StrategoController
     /**
      * Sets up {@link StrategoController} to listen for three incoming 
      * {@link SinglePositionMessage}.
+     * 
+     * @author Caroline O'Neill
      */
     public void initiateTurnListening()
     {
@@ -324,6 +314,8 @@ public class StrategoController
 	 * @param dstRow destination row location
 	 * @param dstCol destination column location
 	 * @return true is move logic is valid, false otherwise
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public boolean movePiece(int srcRow, int srcCol, int dstRow, int dstCol)
 	{
@@ -378,9 +370,7 @@ public class StrategoController
 			model.setPosition(srcRow, srcCol, srcPiece); // 3rd locally
 			network.writeMessage(new SinglePositionMessage(srcRow, srcCol, srcPiece)); // 3rd over network
 		}
-		
 		initiateTurnListening();
-		
 		return true;
 	}
 	
@@ -392,6 +382,8 @@ public class StrategoController
 	 * {@link StrategoController#movePiece(int, int, int, int)} is not called).
 	 * @param piece
 	 * @param removing flag - true if piece is removed, false if added
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public void removeAddPiece(Piece piece, boolean removing)
 	{
@@ -419,6 +411,8 @@ public class StrategoController
 	 * @param dstRow destination row location
 	 * @param dstCol destination column location
 	 * @return true if move includes a jump, false otherwise
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	private boolean doesMoveJump(int srcRow, int srcCol, int dstRow, int dstCol)
 	{
@@ -454,6 +448,8 @@ public class StrategoController
 	 * @param row row of position
 	 * @param col column of position
 	 * @return piece
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public Piece getPosition(int row, int col)
 	{
@@ -468,6 +464,8 @@ public class StrategoController
 	 * @param color color of piece to place
 	 * @return true if the piece is placed (valid position, valid piece), false 
 	 * if setup already has the max. number of that piece type 
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public boolean addToSetup(int row, int col, PieceType pieceType, int color)
 	{
@@ -510,6 +508,8 @@ public class StrategoController
 	/**
 	 * Takes an initial setup grid and fills in the board. Notifies Observers.
 	 * @param color color to setup
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public void setBoard(int color)
 	{
@@ -530,6 +530,8 @@ public class StrategoController
 	 * Takes an initial setup grid and fills in the board. Does not notify
 	 * observers.
 	 * @param color color to setup
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public void setOtherPlayerBoard(int color)
 	{
@@ -546,6 +548,8 @@ public class StrategoController
 	 * If fills an empty slots in the initial board setup if the user did not
 	 * indicate a piece for every space.
 	 * @param color player color
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	private void fillRemaining(int color)
 	{
@@ -593,7 +597,7 @@ public class StrategoController
 				}
 			}
 		}
-		// reset availible
+		// reset availible pieces
 		resetAvailible(color);
 	}
 	
@@ -602,6 +606,8 @@ public class StrategoController
 	 * {@value Piece#NONE} is returned.
 	 * @return {@value Piece#NONE} if no winner yet, {@value Piece#BLUE} if
 	 * blue/client wins, {@value Piece#RED} if red/server wins.
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	public int winner()
 	{
@@ -629,6 +635,8 @@ public class StrategoController
 	 * flag is captured or either team loses all its moveable pieces.
 	 * @param color color of pieces to check
 	 * @return true if there are still moveable pieces, false otherwise
+	 * 
+	 * @author Caroline O'Neill
 	 */
 	private boolean stillMoveablePieces(int color)
 	{
@@ -682,7 +690,8 @@ public class StrategoController
      * 
      * @author Kristopher Rangel
      */
-    public void setModelObserver(StrategoView view) {
+    public void setModelObserver(StrategoView view) 
+    {
         model.addObserver(view);
     }
 	
