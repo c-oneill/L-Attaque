@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.application.Platform;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import stratego.Piece.PieceType;
 
@@ -31,13 +33,14 @@ import stratego.Piece.PieceType;
 public class StrategoController 
 {
 	private StrategoModel model;
-	
 	private StrategoNetwork network;
 	
 	private PieceType[][] blueInitialSetup;
 	private PieceType[][] redInitialSetup;
 	private HashMap<PieceType, Integer> blueAvailible; // piece : count 
 	private HashMap<PieceType, Integer> redAvailible; // piece :  count
+	
+	private AtomicBoolean chatListening;
 	
 	public StrategoController()
 	{
@@ -53,12 +56,14 @@ public class StrategoController
 		
 		resetAvailible(Piece.BLUE);
 		resetAvailible(Piece.RED);
+		
+		chatListening = new AtomicBoolean(true);
 	}
 	
 	/**
 	 * Reset HasMaps of piecees availible for placement to include all 40
 	 * pieces.
-	 * @param color color of piece set resesting
+	 * @param color color of piece set reseting
 	 */
 	private void resetAvailible(int color)
 	{
@@ -95,7 +100,8 @@ public class StrategoController
 	}
 	
 	/**
-     * Build a client/server connection as a {@link StrategoNetwork}.
+     * Build a client/server connection as a {@link StrategoNetwork} for the
+     * game.
      * @param isServer is this instance a server
      * @param server the server to connect to (if it's a client)
      * @param port the port to connect to
@@ -103,31 +109,117 @@ public class StrategoController
      */
 	public boolean buildNetwork(boolean isServer, String server, int port)
     {
-    	network = new StrategoNetwork(isServer, server, port);
+		network = new StrategoNetwork(isServer, server, port);
     	return network.getStartError();
     }
 	
+//	/**
+//     * Build a client/server connection as a {@link StrategoNetwork} for the
+//     * chat.
+//     * @param isServer is this instance a server
+//     * @param server the server to connect to (if it's a client)
+//     * @param port the port to connect to
+//     * @return start error
+//     */
+//	public boolean buildChatNetwork(boolean isServer, String server, int port)
+//    {
+//		chatNetwork = new StrategoNetwork(isServer, server, port);
+//    	return chatNetwork.getStartError();
+//    }
+	
 	/**
-     * Gets the error message associated with starting up the network.
+     * Gets the error message associated with starting up the game network.
      * @return error message
      */
-    public String getNetworkError()
+    public String getGameNetworkError()
     {   String errorMessage = "No network established.";
         if(network != null)
             errorMessage =  network.getErrorMessage();
         return errorMessage;
     }
     
+//    /**
+//     * Gets the error message associated with starting up the chat network.
+//     * @return error message
+//     */
+//    public String getChatNetworkError()
+//    {   String errorMessage = "No network established.";
+//        if(chatNetwork != null)
+//            errorMessage =  chatNetwork.getErrorMessage();
+//        return errorMessage;
+//    }
     
     /**
-     * Closes the network connection.
+     * Closes the game network connection.
      * @return true if there was no error closing connection, false otherwise
      */
     public boolean closeNetwork()
     {   boolean result = false;
         if(network != null)
+        {
             result = network.closeConnection();
+            network.closeChatConnection();
+        }
     	return result;
+    }
+    
+//    /**
+//     * Closes the chat network connection.
+//     * @return true if there was no error closing connection, false otherwise
+//     */
+//    public boolean closeChatNetwork()
+//    {
+//    	chatListening.set(false);
+//    	boolean result = false;
+//        if(chatNetwork != null)
+//            result = chatNetwork.closeConnection();
+//    	return result;
+//    }
+    
+    /**
+     * Initiates continuous listening for {@link ChatMessage} on the chat 
+     * network input stream.
+     * @param chatDisplay chat display
+     */
+    public void initiateChatListening(Label chatDisplay)
+    {
+    	chatListening.set(true);
+    	System.out.println("initiating chat");
+    	System.out.println("chatListening: " + chatListening.get());
+		Thread chatRecvThread = new Thread(() -> 
+    	{
+    		while(chatListening.get())
+    		{
+    			System.out.println("initiate chat while loop");
+        		ChatMessage chatMessage = network.readChatMessage();
+        		if (chatMessage == null) { return; }
+        		System.out.println("chat message recieved");
+        		final String chatText = chatMessage.getMessage();
+        		final int color = chatMessage.getColor();
+        		
+        		Platform.runLater(() -> 
+        		{
+        			// appending to chatDisplay pushed until later in the main thread
+        			String colorString = (color == 1) ? "BLUE" : "RED ";
+        	        String currentText = chatDisplay.getText();
+        	        currentText = currentText + "\n" + colorString +" >> " + chatText;
+        	        chatDisplay.setText(currentText);
+        		});
+    		}
+
+    	});
+		chatRecvThread.start();
+    }
+    
+    /**
+     * Writes a {@link ChatMessage} to the chat network output stream.
+     * @param msg message 
+     * @param color color of player the {@link ChatMessage} originates from.
+     */
+    public void writeChatMessage(String msg, int color)
+    {
+    	System.out.println("chat message written");
+    	network.writeChatMessage(new ChatMessage(msg, color));
     }
     
     /**
@@ -140,6 +232,7 @@ public class StrategoController
     	Thread recvSetupThread = new Thread(() -> 
     	{
     		BoardSetupMessage recvMessage = network.readStartupMessage();
+    		if (recvMessage == null) { return; }
     		
     		PieceType[][] otherInitialSetup =  recvMessage.getInitialSetup();
         	int color = recvMessage.getColor();

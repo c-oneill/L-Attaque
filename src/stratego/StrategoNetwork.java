@@ -24,8 +24,12 @@ import java.net.SocketException;
 public class StrategoNetwork {
 
     private Socket connection;
+    private Socket chatConnection;
+    
     private ObjectOutputStream output;
     private ObjectInputStream input;
+    private ObjectOutputStream chatOutput;
+    private ObjectInputStream chatInput;
     
     private boolean startedWithoutError; // true if connection started without error
     private String errorMessage; // error message associated with the last error occurring
@@ -50,6 +54,8 @@ public class StrategoNetwork {
             startedWithoutError = startServer(port);
         }else {
             startedWithoutError = startClient(server, port);
+            System.out.println("about to start client chat");
+            startClientChat(server, port);
         }
     }
     
@@ -71,12 +77,23 @@ public class StrategoNetwork {
         boolean hasNoException = true;
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             connection = serverSocket.accept();
+            System.out.println("accepted first connection");
+            
             output = new ObjectOutputStream(connection.getOutputStream());
             input = new ObjectInputStream(connection.getInputStream());
+            
+            chatConnection = serverSocket.accept();
+            System.out.println("accepted second connection");
+            
+            chatOutput = new ObjectOutputStream(chatConnection.getOutputStream());
+            chatInput = new ObjectInputStream(chatConnection.getInputStream());
+            
+            serverSocket.close(); // TODO
  
         }catch(IOException e) {
             hasNoException = false;
             errorMessage = "IOException occurred while trying to establish server.";
+            e.printStackTrace(); //TODO: remove
         }
         return hasNoException;
     }
@@ -103,11 +120,30 @@ public class StrategoNetwork {
         boolean hasNoException = true;
         try {
             connection = new Socket(server, port);
+            System.out.println("started client game");
             output = new ObjectOutputStream(connection.getOutputStream());
             input = new ObjectInputStream(connection.getInputStream());
+            System.out.println("created game input/output streams");
         }catch(IOException e) {
             hasNoException = false;
             errorMessage = "IOException occurred while trying to establish connection to server.";
+            e.printStackTrace(); //TODO: remove
+        }
+        return hasNoException;
+    }
+    
+    private boolean startClientChat(String server, int port) {
+        boolean hasNoException = true;
+        try {
+            chatConnection = new Socket(server, port);
+            System.out.println("started client chat");
+            chatOutput = new ObjectOutputStream(chatConnection.getOutputStream());
+            chatInput = new ObjectInputStream(chatConnection.getInputStream());
+            System.out.println("created game input/output streams");
+        }catch(IOException e) {
+            hasNoException = false;
+            errorMessage = "IOException occurred while trying to establish connection to server.";
+            e.printStackTrace(); //TODO: remove
         }
         return hasNoException;
     }
@@ -144,6 +180,23 @@ public class StrategoNetwork {
         return hasNoException;
     }
     
+    public boolean closeChatConnection() {
+        boolean hasNoException = true;
+        try { 
+            
+            if(chatConnection != null)
+                chatConnection.close();
+            else {
+                hasNoException = false;
+                errorMessage = "Attempted to close a null connection.";
+            }
+                
+        }catch(IOException e) {
+            hasNoException = false;
+            errorMessage = "IOException occurred while trying to close connection.";
+        }
+        return hasNoException;
+    }
 
     /**
      * <ul><b><i>writeStartupMessage</i></b></ul>
@@ -253,6 +306,60 @@ public class StrategoNetwork {
         } catch(SocketException | EOFException e) {
             errorMessage = "Connection Closed.";
             closeConnection();
+        }catch(IOException e) {
+            errorMessage = "IOException occured while trying to read message.";
+            e.printStackTrace();
+        }catch(ClassNotFoundException e) {
+            errorMessage = "ClassNotFoundException occured while trying to read message.";
+        }
+        return message;
+    }
+    
+    /**
+     * Writes a {@link ChatMessage} to the output buffer of this connection.
+     *
+     * <p>If an exception occurred while trying to establish the connection,
+     * false is returned. In the event false is returned, 
+     * the error message can be retrieved by invoking {@link #getErrorMessage()}.
+     *
+     * @param message - the {@link ChatMessage} to transmit
+     * @return true if no exception, false otherwise
+     * 
+     * @author Caroline O'Neill
+     * @author Kristopher Rangel
+     */
+    public boolean writeChatMessage(ChatMessage message) {
+        boolean hasNoException = true;
+        errorMessage = "No error occurred";
+        try {
+            chatOutput.writeObject(message);
+        }catch(IOException e) {
+            hasNoException = false;
+            errorMessage = "IOException occured while writing message.";
+        }
+        return hasNoException;
+    }
+    
+    /**
+     * Reads a {@link ChatMessage} from the input buffer of this connection.
+     * 
+     * <p>If an exception occurred while trying to read the message, null will be returned.
+     * In that event, the error message can be retrieved by invoking {@link #getErrorMessage()}.
+     *
+     * @return - the read {@link ChatMessage} object
+     * 
+     * @author Kristopher Rangel
+     * @author Caroline O'Neill
+     */
+    public ChatMessage readChatMessage() {
+        ChatMessage message = null;
+        errorMessage = "No error occurred.";
+        try {
+            message = (ChatMessage) chatInput.readObject();
+            errorMessage = "No error message.";
+        } catch(SocketException | EOFException e) {
+            errorMessage = "Connection Closed.";
+            closeChatConnection();
         }catch(IOException e) {
             errorMessage = "IOException occured while trying to read message.";
             e.printStackTrace();

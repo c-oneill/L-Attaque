@@ -192,13 +192,12 @@ public class StrategoView extends Application implements Observer {
     {
     	init();
     	stage.setScene(new Scene(window));
-    	//stage.show();
     }
     
-    // TODO: need more here?
     public void stop() {
     	// cleanup
         controller.closeNetwork();
+        //controller.closeChatNetwork();
         
         hideTimer();
         if(timer != null)
@@ -218,6 +217,8 @@ public class StrategoView extends Application implements Observer {
         chatEntry = new TextField();
         chatEntry.setOnKeyPressed(e -> {
             if(e.getCode() == KeyCode.ENTER) {
+            	System.out.println("chat sending");
+            	addChat();
                 sendChat();
             }
         });
@@ -495,42 +496,14 @@ public class StrategoView extends Application implements Observer {
                 colorInt = Piece.BLUE;
             }
             
+            System.out.println("server: " + server);
+            System.out.println("port " + port);
+            
             startNewGame(server, port);
         }
  
     }
-    
-    // redundant method? gameOver(int winner) below
-//    /**
-//     * <ul><b><i>exitGameOption</i></b></ul>
-//     * <ul><ul><p><code>private void endGameOption () </code></p></ul>
-//     *
-//     * Performs required functions of ending the game.
-//     *
-//     *@author Kristopher Rangel
-//     */
-//    private void gameOver() {
-//        
-//        //TODO communicate gameOver status to connected server/client
-//        
-//        // Showing applicable win message.
-//        int winner = controller.winner();
-//        String winMsg = "The game has ended at user request.";
-//        if(winner == colorInt)
-//            winMsg = "You won the game!";
-//        else if(winner != 0)
-//            winMsg = "Your opponent won the game!";
-//        this.showAlert(AlertType.INFORMATION, winMsg);
-//        
-//        // cleanup
-//        controller.closeNetwork();
-//        hideTimer();
-//        timer.stopTimer();
-//        
-//        //TODO add end of game stuff
-//    }
-    
-    
+
     /**
      * <ul><b><i>startNewGame</i></b></ul>
      * <ul><ul><p><code>private void startNewGame (String server, int port) </code></p></ul>
@@ -544,17 +517,16 @@ public class StrategoView extends Application implements Observer {
      * @author Caroline O'Neill
      */
     private void startNewGame(String server, int port) 
-    {
-    	// TODO: disable network setup botton
-    	
+    {   
     	// if previous connection exists, close it
     	controller.closeNetwork(); 
+    	
     	//setup network connection
         boolean hasConnectionError = controller.buildNetwork(isServer, server, port);
         
         if(hasConnectionError) 
         {
-        	showAlert(AlertType.ERROR, controller.getNetworkError());
+        	showAlert(AlertType.ERROR, controller.getGameNetworkError());
         	return;
     	} 
         else 
@@ -567,19 +539,44 @@ public class StrategoView extends Application implements Observer {
         	
         	inputEnabled = true;
         	controller.initiateSetupListening();
+        	//call continuous listening method in controller
+            controller.initiateChatListening(chatDisplay);
         }
-        
+
         startTimer();
         setupEnabled = true;
         changePieceBoxColor(playerColor);
-        
 
-        
         for(int i = SETUP_INDEX_START; i < SETUP_INDEX_END; i++) {
             PieceView pv = (PieceView) board.getChildren().get(i);
             pv.setDropEnabled(true);
         }
     }
+    
+//    /**
+//     * This function starts a new chat with the options selected by the user.
+//     *
+//     * @param server - the hostname of the server
+//     * @param port - the port number
+//     *
+//     * @author Caroline O'Neill
+//     */
+//    private void startNewChat(String server, int port) 
+//    {
+//    	// if previous connection exists, close it
+//    	controller.closeChatNetwork(); 
+//    	
+//    	//setup network connection
+//        boolean hasConnectionError = controller.buildChatNetwork(isServer, server, port);
+//        
+//        if (hasConnectionError) 
+//        {
+//        	showAlert(AlertType.ERROR, controller.getChatNetworkError());
+//        	return;
+//    	}
+//        //call continuous listening method in controller
+//        controller.initiateChatListening(chatDisplay);
+//    }
     
     /**
      * Shows an alert of the given type with the message passed.
@@ -659,7 +656,6 @@ public class StrategoView extends Application implements Observer {
         }
         
         //TODO need to coordinate server/client setup completion before next
-        //TODO after setup stuff
     }
     
     /**
@@ -691,6 +687,7 @@ public class StrategoView extends Application implements Observer {
     	showAlert(AlertType.INFORMATION, msg);
     	
     	controller.closeNetwork();
+    	//controller.closeChatNetwork();
     	reInit();
     }
     
@@ -897,7 +894,6 @@ public class StrategoView extends Application implements Observer {
             if (recvOtherSetup && sentSetup)
             {
             	// proceed to 'battle phase'
-            	//TODO: alert about battle beginning
                 showAlert(AlertType.INFORMATION, "The game has started!");
                 hideTimer();
             	setupEnabled = false;
@@ -972,21 +968,21 @@ public class StrategoView extends Application implements Observer {
         if(ENABLE_CONSOLE_DEBUG) { System.out.println("notified"); }
     }
     
-
     /**
      * <ul><b><i>addChat</i></b></ul>
      * <ul><ul><p><code>private void addChat (String chatText, int playerColor) </code></p></ul>
      *
-     * Adds the given line to the chat display, prefixed by the given player.
-     *
-     * @param chatText - the String to add to the chat display
-     * @param playerColor - the integer representing the player (Piece.BLUE or Piece.RED)
+     * Adds the last entered line to the chat display, prefixed by the given 
+     * player.
      * 
      * @author Kristopher Rangel
      */
-    private void addChat(String chatText, int playerColor) {
+    private void addChat() {
         // usage:   addChat("Chat line from blue player.", Piece.BLUE);
         // usage:   addChat("Chat line from red player.", Piece.RED);
+    	String chatText = chatEntry.getText();
+    	int playerColor = colorInt;
+    	
         String colorString = (playerColor == 1) ? "BLUE" : "RED ";
         String currentText = chatDisplay.getText();
         currentText = currentText + "\n" + colorString +" >> " + chatText;
@@ -1006,10 +1002,8 @@ public class StrategoView extends Application implements Observer {
         chatEntry.setText("");
         
         System.out.println(chatText);
-        
-        //TODO do send chatText
+        controller.writeChatMessage(chatText, colorInt);
     }
-    
     
     /**
      * <ul><b><i>getPlayerColor</i></b></ul>
