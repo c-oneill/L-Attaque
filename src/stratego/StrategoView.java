@@ -227,9 +227,6 @@ public class StrategoView extends Application implements Observer {
     	init();
     	window.setRight(chatBox);
     	stage.setScene(new Scene(window));
-    	
-    	stage.setMaximized(true);
-    	stage.setMaximized(false);
     }
     
     /**
