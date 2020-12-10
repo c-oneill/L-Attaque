@@ -126,7 +126,8 @@ public class StrategoView extends Application implements Observer {
      */
     @Override
     public void start(Stage stage) {
-
+        initChatBox();
+        window.setRight(chatBox);
         Scene scene = new Scene(window);
         
         // Showing stage
@@ -198,14 +199,14 @@ public class StrategoView extends Application implements Observer {
         
         initMenuBar();
         initBoard();
-        initChatBox();
         initPieces();
         initTimer();
 
         window = new BorderPane();    
         window.setCenter(board);
         window.setTop(menuBar);
-        window.setRight(chatBox);
+        if(chatBox != null)
+            window.setRight(chatBox);
         window.setLeft(piecesBox);
     }
     
@@ -220,7 +221,12 @@ public class StrategoView extends Application implements Observer {
     private void reInit()
     {
     	init();
+    	window.setRight(chatBox);
     	stage.setScene(new Scene(window));
+    	
+    	stage.setMaximized(true);
+    	stage.setMaximized(false);
+    	
     }
     
     /**
