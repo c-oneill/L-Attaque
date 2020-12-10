@@ -108,6 +108,8 @@ public class StrategoView extends Application implements Observer {
     private boolean inputEnabled;
     
     // Networking
+    private String server;
+    private int port;
     private static boolean isServer;
     private boolean recvOtherSetup = false;
     private boolean sentSetup = false;
@@ -126,6 +128,8 @@ public class StrategoView extends Application implements Observer {
      */
     @Override
     public void start(Stage stage) {
+        server = "";
+        port = 0;
         initChatBox();
         window.setRight(chatBox);
         Scene scene = new Scene(window);
@@ -168,7 +172,7 @@ public class StrategoView extends Application implements Observer {
      *
      */
     public void init() {
-    	System.out.println("INIT");
+        if(ENABLE_CONSOLE_DEBUG) { System.out.println("INIT");}
     	// adjust to native resolution
         Rectangle2D primScreenBounds = Screen.getPrimary().getVisualBounds();
         double h = primScreenBounds.getHeight();
@@ -288,7 +292,7 @@ public class StrategoView extends Application implements Observer {
         // setting on 'enter' pressed event for chat entry
         chatEntry.setOnKeyPressed(e -> {
             if(e.getCode() == KeyCode.ENTER) {
-            	System.out.println("chat sending");
+                if(ENABLE_CONSOLE_DEBUG) { System.out.println("chat sending");}
             	addChat();
                 sendChat();
             }
@@ -659,8 +663,8 @@ public class StrategoView extends Application implements Observer {
             // Getting user options
             String server = newGameMenu.getServer();
             int port = newGameMenu.getPort();
-            isServer = newGameMenu.getCreateModeSelection();
-            System.out.println("isServer = " + isServer);
+            boolean isServer = newGameMenu.getCreateModeSelection();
+            if(ENABLE_CONSOLE_DEBUG) { System.out.println("isServer = " + isServer);}
             if(isServer) {
                 playerColor = Color.RED;
                 colorInt = Piece.RED;
@@ -669,10 +673,12 @@ public class StrategoView extends Application implements Observer {
                 colorInt = Piece.BLUE;
             }
             
-            System.out.println("server: " + server);
-            System.out.println("port " + port);
+            if(ENABLE_CONSOLE_DEBUG) { 
+                System.out.println("server: " + server);
+                System.out.println("port " + port);
+            }
             
-            startNewGame(server, port);
+            startNewGame(server, port, isServer);
         }
     }
 
@@ -688,14 +694,19 @@ public class StrategoView extends Application implements Observer {
      * @author Kristopher Rangel
      * @author Caroline O'Neill
      */
-    private void startNewGame(String server, int port) 
-    {   
-    	// if previous connection exists, close it
-    	controller.closeNetwork(); 
-    	
-    	//setup network connection
-        boolean hasConnectionError = controller.buildNetwork(isServer, server, port);
+    private void startNewGame(String server, int port, boolean isServer) 
+    {   boolean hasConnectionError = false;
         
+        // if settings are different than previous network connection
+        if(!(this.server.equals(server) && this.port == port && StrategoView.isServer == isServer)) {
+            // if previous connection exists, close it
+            controller.closeNetwork();
+            this.server = server;
+            this.port = port;
+            StrategoView.isServer = isServer;
+            hasConnectionError = controller.buildNetwork(isServer, server, port);
+        }
+
         if(hasConnectionError) 
         {
         	showAlert(AlertType.ERROR, controller.getGameNetworkError());
@@ -832,47 +843,7 @@ public class StrategoView extends Application implements Observer {
     	showAlert(AlertType.INFORMATION, msg);
     	reInit();
     }
-    
-    /**
-     * <ul><b><i>manualBoardUpdate</i></b></ul>
-     * <ul><ul><p><code>private void manualBoardUpdate () </code></p></ul>
-     *
-     * Does a sweep of the board ensuring the UI matches current board positioning.
-     * 
-     * <p> Intended to be invoked following the setup period after client/server
-     * syncronization.
-     * 
-     * @author Kristopher Rangel
-     *
-     */
-    
-     // was used for debugging
-    
-    /*
-    private void manualBoardUpdate() {
-        for(int row = 0; row < 10; row++) {
-            for(int col = 0; col < 10; col++) {
-                Piece p = controller.getPosition(row, col);
-                int posRow = translate(row);
-                int posCol = translate(col);
-                PieceView pv = (PieceView) board.getChildren().get(posRow * 10 + posCol);
-                pv.update(p);
-                
-                // setting border color (no piece is black, else colored by piece color)
-                Color c = Color.BLACK;                              // could maybe pull color selection into setBorderColor
-                if(pv.isVisible(playerColor)) {
-                    if(p.color() == 1) { c = Color.BLUE; }
-                    else if (p.color() == 2) { c = Color.RED; }
-                }
-                pv.setBorderColor(c);
-                pv.saveBorderColor(c);
-                
-                if(ENABLE_CONSOLE_DEBUG) { System.out.printf("%d ", pv.convertPieceTypeToIndex(p.type)); }
-            }
-            if(ENABLE_CONSOLE_DEBUG) { System.out.printf(" End row: %d\n", row); }
-        }
-    }
-    */
+
     /**
      * Updates a single board position, accounting for coordinate translation
      * between the model and client boards.
@@ -1021,7 +992,6 @@ public class StrategoView extends Application implements Observer {
         {	
             PieceType[][] initialSetup = ((BoardSetupMessage) arg).getInitialSetup();
             int color = ((BoardSetupMessage) arg).getColor();
-            System.out.println("SETUP BOARD");
             updateBoardSetup(color, initialSetup);
             	
             if (sentSetup)
@@ -1063,7 +1033,6 @@ public class StrategoView extends Application implements Observer {
         } 
         else if (arg instanceof SinglePositionMessage) 
         {
-        	System.out.println("UPDATE POSITION");
         	int row = ((SinglePositionMessage) arg).getRow();
         	int col = ((SinglePositionMessage) arg).getCol();
         	Piece p = ((SinglePositionMessage) arg).getPiece();
@@ -1071,7 +1040,7 @@ public class StrategoView extends Application implements Observer {
         	// user requested end game
         	if (row == -1 && col == -1)
         	{
-        		System.out.println("recv. end game message from opponent");
+                if(ENABLE_CONSOLE_DEBUG) { System.out.println("recv. end game message from opponent");}
         		gameOver(Piece.NONE, false);
         		return;
         	}
@@ -1083,7 +1052,7 @@ public class StrategoView extends Application implements Observer {
         // switching player turns
         if (msgRecvCount == 3)
         {
-        	System.out.println("MSG COUNT == 3");
+            if(ENABLE_CONSOLE_DEBUG) { System.out.println("MSG COUNT == 3"); }
         	msgRecvCount = 0;
         	// switch board enabled/disabled
         	if (inputEnabled == true)
@@ -1098,14 +1067,16 @@ public class StrategoView extends Application implements Observer {
         		inputEnabled = true;
         	}
         	
-        	System.out.println("CHECKING GAME OVER");
+        	if(ENABLE_CONSOLE_DEBUG) { System.out.println("CHECKING GAME OVER");}
             //check if game is over
             int winner = controller.winner();
-            System.out.println("Winner: " + winner);
+            if(ENABLE_CONSOLE_DEBUG) { System.out.println("Winner: " + winner);}
             if (winner != Piece.NONE)
             {
-            	System.out.println("GAMEOVER");
-            	System.out.println("isServer: " + isServer);
+                if(ENABLE_CONSOLE_DEBUG) { 
+                    System.out.println("GAMEOVER");
+                    System.out.println("isServer: " + isServer);
+                }
             	gameOver(winner, false);
             }
         }
@@ -1154,7 +1125,7 @@ public class StrategoView extends Application implements Observer {
         String chatText = chatEntry.getText();
         chatEntry.setText("");
         
-        System.out.println(chatText);
+        if(ENABLE_CONSOLE_DEBUG) { System.out.println(chatText);}
         controller.writeChatMessage(chatText, colorInt);
     }
     
