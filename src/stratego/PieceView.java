@@ -156,10 +156,7 @@ public class PieceView extends VBox {
                 content.putString(toString());
                 db.setContent(content);
                 
-                if(StrategoView.ENABLE_CONSOLE_DEBUG) {
-                    System.out.print("Drag started on ");
-                    testPrintPiece();
-                }
+                if(StrategoView.ENABLE_CONSOLE_DEBUG) { System.out.print("Drag started on "); }
                 this.startFullDrag();
             }
             e.consume();
@@ -187,10 +184,7 @@ public class PieceView extends VBox {
                 Color c = Color.MAGENTA;
                 setBorderColor(c);
                 
-                if(StrategoView.ENABLE_CONSOLE_DEBUG) {
-                    System.out.print("Drag entered ");
-                    testPrintPiece();
-                }
+                if(StrategoView.ENABLE_CONSOLE_DEBUG) { System.out.print("Drag entered ");}
             }
         });
 
@@ -202,10 +196,7 @@ public class PieceView extends VBox {
                 setBorderColor(this.borderColor);
                 e.consume();
                 
-                if(StrategoView.ENABLE_CONSOLE_DEBUG) {
-                    System.out.print("Drag exited ");
-                    testPrintPiece();
-                }
+                if(StrategoView.ENABLE_CONSOLE_DEBUG) { System.out.print("Drag exited "); }
             }
         });
         
@@ -248,9 +239,7 @@ public class PieceView extends VBox {
                             System.out.println("Not moved (from controller)");
                         }
                         System.out.printf("From Piece index: %d ", fromPieceIndex);
-                        testPrintPiece(fromPieceIndex);
                         System.out.printf("To Piece index: %d ", toPieceIndex);
-                        testPrintPiece(toPieceIndex);
                     }
                     
                     
@@ -275,7 +264,6 @@ public class PieceView extends VBox {
                 
                 if(StrategoView.ENABLE_CONSOLE_DEBUG) {
                     System.out.print("Drag ended on ");
-                    testPrintPiece();
                     System.out.printf("String: %s %s %s\n", info[0], info[1], info[2]);
                     System.out.printf("Dropped on row %d and col %d\n", row, col);
                 }
@@ -507,22 +495,6 @@ public class PieceView extends VBox {
         
         return str;
     }
-    
-    /**
-     * <ul><b><i>testPrintPiece</i></b></ul>
-     * <ul><ul><p><code> void testPrintPiece () </code></p></ul>
-     *
-     * A test function to print the text equivalent of this object's piece index
-     * 
-     * @author Kristopher Rangel
-     *
-     */
-    private void testPrintPiece(int pieceIndex) {
-                         //  -2      -1       0        1     2      3       4         5     6       7     8      9      10      11
-        String[] pieces = {"Lake", "Land", "Flag", "Bomb", "Spy", "Scout", "Miner", "SGT", "LT", "CPT", "MAJ", "COL", "GEN", "Marshal"};
-        System.out.printf("%s\n", pieces[pieceIndex + 2]);
-    }
-    private void testPrintPiece() { testPrintPiece(pieceIndex); }
         
     /**
      * <ul><b><i>convertPieceIndexToType</i></b></ul>
