@@ -830,7 +830,6 @@ public class StrategoView extends Application implements Observer {
     		msg = "You lost!";
 
     	showAlert(AlertType.INFORMATION, msg);
-    	controller.closeNetwork();
     	reInit();
     }
     
