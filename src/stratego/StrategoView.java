@@ -230,7 +230,6 @@ public class StrategoView extends Application implements Observer {
     	
     	stage.setMaximized(true);
     	stage.setMaximized(false);
-    	
     }
     
     /**
@@ -249,6 +248,8 @@ public class StrategoView extends Application implements Observer {
         hideTimer();
         if(timer != null)
             timer.stopTimer();
+        
+        System.exit(0);
     }
     
     /**
