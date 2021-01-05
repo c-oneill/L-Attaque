@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import javafx.beans.property.SimpleStringProperty;
 import stratego.Timer;
 
-public class TimerTestClass {
+public class TimerTest {
 	@Test
 	public void constructerTest() {
 		Timer timer = new Timer(120000);

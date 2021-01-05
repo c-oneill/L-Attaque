@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import stratego.Piece;
 import stratego.Piece.PieceType;
 
-public class PieceTestClass {
+public class PieceTest {
 
 	@Test
 	public void whoWinsTest() {

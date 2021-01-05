@@ -9,7 +9,7 @@ import stratego.Piece;
 import stratego.Piece.PieceType;
 import stratego.StrategoModel;
 
-	public class StrategoModelTestClass {
+	public class StrategoModelTest {
 
 		@Test
 		public void constructerTest() {
