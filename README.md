@@ -241,4 +241,4 @@ Project Link: <https://github.com/c-oneill/L-Attaque>
 [issues-shield]: https://img.shields.io/github/issues/c-oneill/L-Attaque.svg?style=for-the-badge
 [issues-url]: https://github.com/c-oneill/L-Attaque/issues
 [license-shield]: https://img.shields.io/github/license/c-oneill/L-Attaque.svg?style=for-the-badge
-[license-url]: https://github.com/c-oneill/L-Attaque/blob/master/LICENSE.txt
+[license-url]: https://github.com/c-oneill/L-Attaque/blob/master/LICENSE
